@@ -1,0 +1,13 @@
+name = "carnet-strava-proxy"
+main = "strava-proxy.js"
+compatibility_date = "2026-06-20"
+
+# Change cette valeur pour l'URL exacte de ton site GitHub Pages une fois connue,
+# par exemple "https://ton-compte.github.io", afin que seul ton site puisse
+# appeler ce relais. Laisser "*" fonctionne aussi mais autorise n'importe quel site.
+[vars]
+ALLOWED_ORIGIN = "*"
+
+# Le Client Secret Strava ne se met PAS ici (ce fichier peut être commité sur
+# GitHub). Il se configure comme secret chiffré via :
+#   wrangler secret put STRAVA_CLIENT_SECRET
