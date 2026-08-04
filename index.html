@@ -360,49 +360,63 @@ function goTab(i, keepScroll){
   renderAll();
   if(!keepScroll){ const p = document.getElementById('pane'+i); if(p) p.scrollTop = 0; }
 }
-function renderAll(){
+function renderAll(keepSettings){
   document.getElementById('pane0').innerHTML = viewAujourdhui();
   document.getElementById('pane1').innerHTML = viewCalendrier();
   document.getElementById('pane2').innerHTML = viewProgramme();
   document.getElementById('pane3').innerHTML = viewRecap();
-  document.getElementById('pane4').innerHTML = viewReglages();
+  /* keepSettings : on ne réécrit pas l'onglet Réglages quand un import y affiche son résultat */
+  if(!keepSettings) document.getElementById('pane4').innerHTML = viewReglages();
 }
 
 /* balayage gauche / droite entre les onglets */
 (function initSwipe(){
-  let st = null;
-  const el = () => document.getElementById('swipe');
-  document.addEventListener('pointerdown', e=>{
-    const zone = el(); if(!zone || !zone.contains(e.target)) return;
+  const zone = document.getElementById('swipe');
+  let x0=0, y0=0, w=0, axis=null, dx=0, active=false;
+
+  function start(x, y, target){
     if(document.getElementById('sheetBackdrop').classList.contains('open')) return;
-    if(e.target.closest('input,textarea,select,.chips')) return;
-    st = {x:e.clientX, y:e.clientY, w:zone.clientWidth, axis:null};
-  });
-  document.addEventListener('pointermove', e=>{
-    if(!st) return;
-    const dx = e.clientX-st.x, dy = e.clientY-st.y;
-    if(!st.axis){
-      if(Math.abs(dx)<8 && Math.abs(dy)<8) return;
-      st.axis = Math.abs(dx)>Math.abs(dy) ? 'x' : 'y';
+    if(target && target.closest && target.closest('input,textarea,select,.chips')) return;
+    active = true; x0 = x; y0 = y; w = zone.clientWidth; axis = null; dx = 0;
+  }
+  function move(x, y){
+    if(!active) return false;
+    const ddx = x-x0, ddy = y-y0;
+    if(!axis){
+      if(Math.abs(ddx)<10 && Math.abs(ddy)<10) return false;
+      axis = Math.abs(ddx) > Math.abs(ddy)*1.2 ? 'x' : 'y';
+      if(axis==='y'){ active = false; return false; }
     }
-    if(st.axis!=='x') return;
-    let d = dx;
-    if((tabIndex===0 && d>0) || (tabIndex===TABS.length-1 && d<0)) d *= .28;
-    st.d = d;
-    setTrack(d, false);
-  });
-  const end = ()=>{
-    if(!st){ return; }
-    const s = st; st = null;
-    if(s.axis!=='x'){ return; }
-    const thr = Math.min(90, s.w*0.22);
-    const d = s.d||0;
-    if(d < -thr) goTab(tabIndex+1);
-    else if(d > thr) goTab(tabIndex-1);
+    dx = ddx;
+    if((tabIndex===0 && dx>0) || (tabIndex===TABS.length-1 && dx<0)) dx *= .3;
+    setTrack(dx, false);
+    return true;
+  }
+  function end(){
+    if(!active) return;
+    active = false;
+    if(axis!=='x') return;
+    if(Math.abs(dx)>10) window._swallowClick = true;
+    const thr = Math.min(90, w*0.2);
+    if(dx < -thr) goTab(tabIndex+1);
+    else if(dx > thr) goTab(tabIndex-1);
     else setTrack(0, true);
-  };
-  document.addEventListener('pointerup', end);
-  document.addEventListener('pointercancel', end);
+  }
+
+  zone.addEventListener('touchstart', e=>{
+    if(e.touches.length!==1) return;
+    start(e.touches[0].clientX, e.touches[0].clientY, e.target);
+  }, {passive:true});
+  zone.addEventListener('touchmove', e=>{
+    if(e.touches.length!==1) return;
+    if(move(e.touches[0].clientX, e.touches[0].clientY) && e.cancelable) e.preventDefault();
+  }, {passive:false});
+  zone.addEventListener('touchend', end);
+  zone.addEventListener('touchcancel', end);
+
+  zone.addEventListener('mousedown', e=>{ if(e.button===0) start(e.clientX, e.clientY, e.target); });
+  window.addEventListener('mousemove', e=>{ if(active) move(e.clientX, e.clientY); });
+  window.addEventListener('mouseup', end);
 })();
 
 /* ============================================================
@@ -876,6 +890,9 @@ function viewReglages(){
       <button class="list-item" data-act="settings-page" data-p="garmin">
         <div style="flex:1;"><div class="t">Garmin</div><div class="s">Par export CSV ou via Strava</div></div><span class="chev">›</span>
       </button>
+      <button class="list-item" data-act="settings-page" data-p="concept2">
+        <div style="flex:1;"><div class="t">Concept2 / ErgData</div><div class="s">Logbook Concept2 — export CSV ou via Strava</div></div><span class="chev">›</span>
+      </button>
     </div>
   </div>
 
@@ -1000,6 +1017,26 @@ function settingsSubpage(page){
     <div>
       <input type="file" id="fileGarmin" accept=".csv,.tcx,.gpx">
       <div class="status" id="garminStatus"></div>
+    </div>`;
+  }
+
+  if(page==='concept2'){
+    return `${subHeader('Concept2 / ErgData')}
+    <div class="hint">ErgData envoie automatiquement tes séances d'ergomètre vers le <b>Logbook Concept2</b> (log.concept2.com). C'est de là qu'on récupère les données : ErgData lui-même ne stocke rien de consultable depuis un navigateur.</div>
+    <div>
+      <div class="kicker" style="margin-bottom:8px;">1 — Récupérer le fichier</div>
+      <div class="hint" style="margin-bottom:10px;">Ouvre ton historique Concept2, puis <b>Export</b> → CSV. Le fichier contient la date, le temps, la distance et le type de machine.</div>
+      <a class="btn sec block" href="https://log.concept2.com/history" target="_blank" rel="noopener" style="text-decoration:none;">Ouvrir mon Logbook Concept2</a>
+    </div>
+    <div>
+      <div class="kicker" style="margin-bottom:8px;">2 — Importer le CSV</div>
+      <input type="file" id="fileC2" accept=".csv">
+      <div class="status" id="c2Status"></div>
+      <div class="hint" style="margin-top:8px;">RowErg et SkiErg sont classés en aviron, BikeErg en vélo. Les séances déjà importées sont ignorées : tu peux réimporter le fichier complet sans créer de doublons.</div>
+    </div>
+    <div>
+      <div class="kicker" style="margin-bottom:8px;">Ou en automatique</div>
+      <div class="hint">Dans les réglages de ton Logbook Concept2, active la synchronisation vers Strava. Tes séances d'ergomètre arrivent alors dans ce carnet par la connexion Strava, sans manipulation de fichier.</div>
     </div>`;
   }
 
@@ -1365,7 +1402,7 @@ async function importBackup(file, statusEl){
     }
     await saveSessions(); await savePlan(); await saveSettings();
     statusEl.textContent = `Import terminé : ${SESSIONS.length} séance(s), ${PLAN.length} entrée(s) de planning.`;
-    renderAll();
+    renderAll(true);
   }catch(e){
     statusEl.textContent = 'Lecture impossible : fichier illisible ou corrompu.';
   }
@@ -1398,7 +1435,7 @@ async function handleExcelFile(file){
     });
     await savePlan();
     status.textContent = `${added} séance(s) ajoutée(s) au programme.`;
-    renderAll();
+    renderAll(true);
   }catch(e){ status.textContent = 'Lecture impossible : format non reconnu.'; }
 }
 function parseFrenchDate(v){
@@ -1465,7 +1502,7 @@ async function importPdfLines(){
   });
   await savePlan();
   status.textContent = `${added} ligne(s) importée(s) sur ${lines.length}. Vérifie le résultat dans l'onglet Programme.`;
-  renderAll();
+  renderAll(true);
 }
 
 /* ============================================================
@@ -1549,7 +1586,7 @@ async function stravaFetchActivities(token, status, workerUrl){
     });
     await saveSessions(); await savePlan();
     if(status) status.textContent = `${added} activité(s) récupérée(s) depuis Strava.`;
-    renderAll();
+    renderAll(true);
   }catch(e){
     if(status) status.textContent = workerUrl
       ? "Le relais n'a pas répondu correctement — vérifie l'URL et que le Worker est bien déployé (voir README)."
@@ -1607,7 +1644,75 @@ async function handleGarminFile(file){
   });
   await saveSessions(); await savePlan();
   status.textContent = `${added} activité(s) importée(s) depuis le CSV Garmin.`;
-  renderAll();
+  renderAll(true);
+}
+function parseCSVRows(text){
+  const rows=[]; let row=[], cur='', q=false;
+  for(let i=0;i<text.length;i++){
+    const c = text[i];
+    if(q){
+      if(c==='"'){ if(text[i+1]==='"'){ cur+='"'; i++; } else q=false; }
+      else cur+=c;
+    }
+    else if(c==='"') q=true;
+    else if(c===','||c===';'){ row.push(cur); cur=''; }
+    else if(c==='\n'){ row.push(cur); cur=''; rows.push(row); row=[]; }
+    else if(c!=='\r') cur+=c;
+  }
+  if(cur!=='' || row.length){ row.push(cur); rows.push(row); }
+  return rows.filter(r=>r.some(v=>String(v).trim()!==''));
+}
+function parseConcept2Date(v){
+  if(!v) return null;
+  const s = String(v).trim();
+  const m = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if(m) return `${m[1]}-${m[2]}-${m[3]}`;
+  return parseFrenchDate(s.split(' ')[0]);
+}
+async function handleConcept2File(file){
+  const status = document.getElementById('c2Status');
+  status.textContent = 'Lecture du fichier…';
+  try{
+    const rows = parseCSVRows(await file.text());
+    if(rows.length<2){ status.textContent = 'Fichier vide ou illisible.'; return; }
+    const header = rows[0].map(h=>h.toLowerCase().trim());
+    const find = (...ks) => header.findIndex(h=>ks.some(k=>h.includes(k)));
+    const iDate = find('date');
+    const iSec  = find('work time (seconds)','time (seconds)');
+    const iDur  = find('work time','duration','temps','time');
+    const iDist = find('work distance','distance');
+    const iType = find('type','machine');
+    const iId   = find('id');
+    const iCom  = find('comments','description','workout name','name');
+    let added=0, skipped=0;
+    rows.slice(1).forEach(r=>{
+      const dateISO = parseConcept2Date(r[iDate]);
+      if(!dateISO) return;
+      const extId = iId>-1 && String(r[iId]).trim() ? 'c2-'+String(r[iId]).trim() : null;
+      if(extId && SESSIONS.some(s=>s.extId===extId)){ skipped++; return; }
+      const type = (iType>-1 ? String(r[iType]) : '').toLowerCase();
+      const sport = type.includes('bike') ? 'velo' : 'aviron';
+      let duration = null;
+      if(iSec>-1 && Number(r[iSec])) duration = Math.round(Number(r[iSec])/60);
+      if(!duration && iDur>-1) duration = parseDurationToMin(r[iDur]);
+      let distance = null;
+      if(iDist>-1){
+        const raw = Number(String(r[iDist]).replace(/\s/g,'').replace(',','.'));
+        if(raw) distance = raw>=400 ? Math.round(raw/100)/10 : Math.round(raw*10)/10;
+      }
+      const session = {
+        id:uid(), date:dateISO, sport, duration:duration||null, distance,
+        source:'concept2', completion:null, notes: iCom>-1 ? String(r[iCom]).trim() : '',
+      };
+      if(extId) session.extId = extId;
+      autoLinkSession(session);
+      SESSIONS.push(session);
+      added++;
+    });
+    await saveSessions(); await savePlan();
+    status.textContent = `${added} séance(s) importée(s) depuis Concept2${skipped?', '+skipped+' déjà présente(s)':''}.`;
+    renderAll(true);
+  }catch(e){ status.textContent = 'Lecture impossible : format non reconnu.'; }
 }
 function parseDurationToMin(v){
   if(!v) return null;
@@ -1624,6 +1729,7 @@ function parseDurationToMin(v){
    ÉVÉNEMENTS (délégation)
    ============================================================ */
 document.addEventListener('click', async (e)=>{
+  if(window._swallowClick){ window._swallowClick = false; return; }
   const el = e.target.closest('[data-act]');
   if(!el) return;
   const act = el.dataset.act;
@@ -1733,6 +1839,7 @@ document.addEventListener('change', (e)=>{
   if(t.id==='fileExcel' && t.files[0]) handleExcelFile(t.files[0]);
   if(t.id==='filePdf' && t.files[0]) handlePdfFile(t.files[0]);
   if(t.id==='fileGarmin' && t.files[0]) handleGarminFile(t.files[0]);
+  if(t.id==='fileC2' && t.files[0]) handleConcept2File(t.files[0]);
   if(t.id==='fileBackup' && t.files[0]) importBackup(t.files[0], document.getElementById('backupStatus'));
 });
 

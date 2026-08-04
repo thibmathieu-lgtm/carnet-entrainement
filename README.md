@@ -16,7 +16,7 @@ par un balayage gauche / droite, ou en touchant l'onglet.
 - **Récap** — bascule semaine / mois / année : durée, nombre de séances et kilomètres, courbe de progression
   (heures par jour, par semaine ou par mois), tableau de répartition par sport avec la part en pourcentage,
   et la liste des activités réalisées, filtrable par sport.
-- **Réglages** — objectifs hebdomadaires, import de programme, connexions Strava et Garmin, sauvegarde et
+- **Réglages** — objectifs hebdomadaires, import de programme, connexions Strava, Garmin et Concept2 / ErgData, sauvegarde et
   restauration des données, export CSV, mot de passe et rappels.
 
 ### Saisie d'une séance
@@ -69,6 +69,17 @@ Deux solutions qui fonctionnent bien en pratique :
 - **Synchronisation Garmin → Strava** : à activer dans les réglages de ton compte Garmin Connect. Ensuite, une
   seule connexion (Strava, via le relais ci-dessus) suffit pour les deux.
 - **Export CSV** : Garmin Connect → Activités → icône export → CSV, puis import dans **Réglages → Garmin**.
+
+## Connexion Concept2 / ErgData
+
+ErgData envoie les séances d'ergomètre vers le **Logbook Concept2** (log.concept2.com) ; c'est de là qu'on récupère
+les données. Deux voies, toutes deux dans **Réglages → Concept2 / ErgData** :
+
+- **Export CSV** : Logbook Concept2 → Historique → Export → CSV, puis import dans l'appli. RowErg et SkiErg sont
+  classés en aviron, BikeErg en vélo. Les séances déjà importées sont ignorées (identifiant Concept2 conservé),
+  le fichier complet peut donc être réimporté sans créer de doublons.
+- **Synchronisation Concept2 → Strava**, à activer dans les réglages du Logbook : les séances d'ergomètre
+  arrivent alors par la connexion Strava, sans manipulation de fichier.
 
 ## Important à savoir avant utilisation
 
