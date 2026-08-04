@@ -3,233 +3,252 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#F5F3EE">
+<meta name="theme-color" content="#FBF9F3">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Carnet">
 <meta name="mobile-web-app-capable" content="yes">
-<title>Carnet // Entraînement</title>
+<title>Carnet d'entrainement</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <style>
 :root{
-  --bg:#F5F3EE;
+  --paper:#FBF9F3;
   --surface:#FFFFFF;
-  --surface-2:#EDEAE2;
+  --surface-2:#F1EEE5;
+  --line:#EAE6DB;
   --border:#D8D3C6;
-  --text:#1B1B18;
-  --text-dim:#5B5A54;
   --ink:#14140F;
-  --lime:#8CA300;
-  --lime-ink:#FFFFFF;
-  --aviron:#0E6E82;
-  --velo:#A8600A;
-  --course:#B23A2E;
-  --muscu:#5B4A9E;
-  --radius:12px;
+  --text:#14140F;
+  --dim:#6B685F;
+  --faint:#8A8578;
+  --ghost:#C6C1B2;
+  --aviron:#14657A;
+  --velo:#96620F;
+  --course:#A93A2C;
+  --muscu:#574B92;
+  --bar:76px;
 }
-*{box-sizing:border-box;}
-html,body{margin:0;padding:0;}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{margin:0;padding:0;height:100%;overflow:hidden;}
 body{
-  background:var(--bg);
-  color:var(--text);
-  font-family:'Inter',system-ui,sans-serif;
-  font-size:16px;
-  line-height:1.5;
-  -webkit-font-smoothing:antialiased;
-  min-height:100vh;
+  background:var(--paper);color:var(--text);
+  font-family:'Inter',system-ui,-apple-system,sans-serif;
+  font-size:16px;line-height:1.5;-webkit-font-smoothing:antialiased;
 }
-h1,h2,h3,.display{font-family:'Space Grotesk',system-ui,sans-serif;color:var(--ink);}
+h1,h2,h3,.display{font-family:'Space Grotesk',system-ui,sans-serif;color:var(--ink);margin:0;}
 .mono{font-family:'JetBrains Mono',monospace;}
-a{color:var(--aviron);font-weight:600;}
-button{font-family:inherit;cursor:pointer;}
-input,select,textarea{font-family:inherit;}
+a{color:var(--aviron);font-weight:600;text-decoration:none;}
+a:hover{color:#0E4D5C;text-decoration:underline;}
+button{font-family:inherit;cursor:pointer;color:inherit;}
+input,select,textarea{font-family:inherit;font-size:15px;}
+:focus-visible{outline:2px solid var(--aviron);outline-offset:2px;}
 
-/* ---- layout ---- */
-#app{max-width:960px;margin:0 auto;padding:0 16px calc(110px + env(safe-area-inset-bottom));}
+/* ---------- coquille ---------- */
+#app{display:none;flex-direction:column;height:100%;max-width:520px;margin:0 auto;position:relative;background:var(--paper);}
 header.top{
-  display:flex;align-items:center;justify-content:space-between;
-  padding:calc(20px + env(safe-area-inset-top)) 0 14px;position:sticky;top:0;background:var(--bg);z-index:20;
-  border-bottom:2px solid var(--ink);
+  flex:none;padding:calc(12px + env(safe-area-inset-top)) 22px 10px;
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
 }
-.logo{font-size:22px;font-weight:700;letter-spacing:-0.01em;color:var(--ink);}
-.logo span{color:var(--lime);}
-nav.tabs{display:flex;gap:8px;overflow-x:auto;padding:14px 0;margin-bottom:6px;-webkit-overflow-scrolling:touch;}
-nav.tabs button{
-  background:var(--surface);border:2px solid var(--border);color:var(--text);
-  padding:10px 16px;border-radius:999px;font-size:14px;font-weight:600;white-space:nowrap;
-  transition:all .15s;
+.brand{font-family:'Space Grotesk',system-ui,sans-serif;font-size:17px;font-weight:700;letter-spacing:-0.01em;}
+#swipe{flex:1;overflow:hidden;position:relative;touch-action:pan-y;}
+#track{display:flex;width:500%;height:100%;will-change:transform;}
+.pane{
+  width:20%;height:100%;overflow-y:auto;-webkit-overflow-scrolling:touch;
+  padding:6px 22px calc(96px + env(safe-area-inset-bottom));
+  display:flex;flex-direction:column;gap:26px;
 }
-nav.tabs button.active{background:var(--ink);color:#FFFFFF;border-color:var(--ink);}
-.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;margin-bottom:16px;box-shadow:0 1px 2px rgba(0,0,0,.04);}
-.card h3{margin:0 0 14px;font-size:15px;color:var(--text);text-transform:uppercase;letter-spacing:.04em;font-weight:700;}
-.row{display:flex;gap:10px;flex-wrap:wrap;}
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
-.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
-@media (max-width:600px){.grid3{grid-template-columns:1fr;}}
-
-/* ---- signature element: weekly strip (lundi -> dimanche) ---- */
-.week-strip{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:4px;}
-.week-cell{
-  border-radius:10px;background:var(--surface-2);border:2px solid var(--border);
-  padding:8px 4px;display:flex;flex-direction:column;align-items:center;gap:6px;min-height:108px;
-  cursor:pointer;
+.pane::-webkit-scrollbar{width:0;}
+nav.tabbar{
+  flex:none;display:grid;grid-template-columns:repeat(5,1fr);
+  background:var(--paper);border-top:1px solid #E4E0D4;
+  padding:9px 4px calc(10px + env(safe-area-inset-bottom));
 }
-.week-cell.today{border-color:var(--ink);}
-.week-cell .wc-day{font-size:11px;font-weight:700;color:var(--text-dim);text-transform:uppercase;}
-.week-cell .wc-num{font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700;color:var(--ink);margin-top:-4px;}
-.week-cell .wc-chips{display:flex;flex-direction:column;gap:3px;width:100%;flex:1;justify-content:center;}
-.week-chip{
-  border-radius:5px;color:#fff;font-size:10.5px;font-weight:700;text-align:center;
-  padding:3px 2px;line-height:1.2;font-family:'JetBrains Mono',monospace;
+nav.tabbar button{
+  background:none;border:none;padding:5px 0;display:flex;flex-direction:column;align-items:center;gap:5px;
+  font-size:10.5px;font-weight:500;color:var(--faint);transition:color .18s;
 }
-.week-chip.planned{background:transparent;border:1.5px dashed currentColor;color:var(--text-dim);font-weight:600;}
-.week-cell .wc-total{font-size:10px;color:var(--text-dim);font-weight:700;}
-
-.badge{display:inline-flex;align-items:center;gap:5px;padding:5px 12px;border-radius:999px;font-size:13px;font-weight:700;color:#fff;}
-.dot{width:8px;height:8px;border-radius:50%;display:inline-block;}
-.b-aviron{background:var(--aviron);}
-.b-velo{background:var(--velo);}
-.b-course{background:var(--course);}
-.b-muscu{background:var(--muscu);}
-
-.stat{display:flex;flex-direction:column;gap:4px;}
-.stat .num{font-family:'JetBrains Mono',monospace;font-size:30px;font-weight:700;color:var(--ink);}
-.stat .lbl{font-size:12px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.04em;font-weight:600;}
-
-table{width:100%;border-collapse:collapse;font-size:14px;}
-th{text-align:left;color:var(--text-dim);font-size:12px;text-transform:uppercase;letter-spacing:.03em;padding:8px 8px;border-bottom:2px solid var(--ink);font-weight:700;}
-td{padding:11px 8px;border-bottom:1px solid var(--border);vertical-align:middle;color:var(--text);}
-tr:last-child td{border-bottom:none;}
-.icon-btn{background:none;border:none;color:var(--text-dim);font-size:16px;padding:10px 10px;border-radius:6px;min-width:40px;min-height:40px;}
-.icon-btn:hover{background:var(--surface-2);color:var(--text);}
-
-input[type=text],input[type=number],input[type=date],select,textarea{
-  width:100%;background:var(--surface);border:2px solid var(--border);color:var(--text);
-  padding:11px 12px;border-radius:8px;font-size:15px;
-}
-input:focus,select:focus,textarea:focus{outline:none;border-color:var(--ink);}
-label{font-size:12px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.03em;display:block;margin-bottom:6px;font-weight:700;}
-.field{margin-bottom:14px;}
-.btn{
-  display:inline-flex;align-items:center;gap:6px;background:var(--ink);color:#fff;border:none;
-  padding:13px 18px;border-radius:8px;font-weight:700;font-size:14px;
-}
-.btn.secondary{background:var(--surface);color:var(--text);border:2px solid var(--border);}
-.btn.danger{background:#FBEAE8;color:var(--course);border:2px solid var(--course);}
-.btn:disabled{opacity:.5;cursor:not-allowed;}
-
+nav.tabbar button i{width:18px;height:18px;border-radius:4px;border:2px solid var(--faint);display:block;transition:all .18s;}
+nav.tabbar button.on{color:var(--ink);font-weight:700;}
+nav.tabbar button.on i{background:var(--ink);border-color:var(--ink);}
 .fab{
-  position:fixed;bottom:calc(24px + env(safe-area-inset-bottom));right:24px;width:60px;height:60px;border-radius:50%;
-  background:var(--ink);color:#fff;border:none;box-shadow:0 6px 20px rgba(0,0,0,.25);z-index:30;
-  display:flex;align-items:center;justify-content:center;padding:0;margin:0;
-  font-size:32px;font-weight:300;line-height:1;font-family:'Space Grotesk',system-ui,sans-serif;
+  position:absolute;right:20px;bottom:calc(var(--bar) + 18px + env(safe-area-inset-bottom));
+  width:56px;height:56px;border-radius:50%;background:var(--ink);color:#fff;border:none;
+  box-shadow:0 8px 22px -6px rgba(20,20,15,.5);z-index:20;
+  display:flex;align-items:center;justify-content:center;font:300 30px/1 'Space Grotesk',system-ui;
 }
-.fab span{display:block;transform:translateY(-1px);}
-.modal-backdrop{position:fixed;inset:0;background:rgba(20,20,15,.55);display:none;align-items:flex-end;justify-content:center;z-index:40;}
-.modal-backdrop.open{display:flex;}
-@media (min-width:640px){.modal-backdrop{align-items:center;}}
-.modal{
-  background:var(--surface);border:1px solid var(--border);border-radius:16px 16px 0 0;
-  padding:22px 22px calc(22px + env(safe-area-inset-bottom));width:100%;max-width:520px;max-height:88vh;overflow-y:auto;
-}
-@media (min-width:640px){.modal{border-radius:16px;}}
-.modal h2{margin:0 0 16px;font-size:20px;}
-.sportpicker{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;}
-.sportpicker button{
-  flex:1;min-width:80px;padding:13px 8px;border-radius:10px;border:2px solid var(--border);
-  background:var(--surface);color:var(--text);font-size:13px;font-weight:700;
-}
-.sportpicker button.sel{border-color:var(--ink);color:#fff;background:var(--ink);}
-.progress-ring{width:34px;height:34px;flex:none;}
-.hint{font-size:13.5px;color:var(--text-dim);line-height:1.6;margin-top:8px;}
-.empty{color:var(--text-dim);font-size:14px;padding:24px 0;text-align:center;}
-.tag-sport{font-size:12px;font-weight:700;}
-select[multiple]{height:auto;}
-.close-x{position:absolute;top:16px;right:16px;background:var(--surface-2);border:none;color:var(--text);font-size:18px;width:40px;height:40px;border-radius:50%;line-height:1;}
-.modal-wrap{position:relative;}
-.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);}
-.toggle-row:last-child{border-bottom:none;}
+.fab:active{transform:scale(.94);}
 
-/* ---- calendrier mensuel ---- */
-.cal-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
-.cal-nav .cal-title{font-family:'Space Grotesk',system-ui,sans-serif;font-size:18px;font-weight:700;text-transform:capitalize;}
-.cal-nav button{background:var(--surface-2);border:2px solid var(--border);color:var(--text);width:36px;height:36px;border-radius:8px;font-size:16px;font-weight:700;}
-.cal-weekdays{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-bottom:6px;}
-.cal-weekdays div{text-align:center;font-size:11px;font-weight:700;color:var(--text-dim);text-transform:uppercase;}
-.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;}
+/* ---------- éléments communs ---------- */
+.kicker{font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--faint);font-weight:600;}
+.h-page{font-size:25px;line-height:1.15;letter-spacing:-0.02em;font-weight:700;}
+.big{font-family:'Space Grotesk',system-ui,sans-serif;font-weight:700;letter-spacing:-0.03em;}
+.sub{font-size:13px;line-height:1.35;color:var(--dim);}
+.dot{width:10px;height:10px;border-radius:50%;flex:none;display:inline-block;}
+.dot.plan{background:none !important;border:2px solid currentColor;}
+.rowline{display:flex;align-items:center;gap:12px;padding:12px 2px;border-bottom:1px solid var(--line);}
+.rowline:last-child{border-bottom:none;}
+.rowline .t{font-size:15px;font-weight:500;line-height:1.3;}
+.rowline .s{font-size:12px;color:var(--faint);margin-top:1px;}
+.daykey{font:600 12.5px 'JetBrains Mono',monospace;color:var(--faint);width:46px;flex:none;}
+.val{font:600 13px 'JetBrains Mono',monospace;color:var(--dim);}
+.card{background:var(--surface);border-radius:14px;padding:16px;box-shadow:0 1px 2px rgba(20,20,15,.06);}
+.list{background:var(--surface);border-radius:14px;overflow:hidden;box-shadow:0 1px 2px rgba(20,20,15,.06);}
+.list-item{display:flex;align-items:center;gap:12px;padding:15px 16px;border-bottom:1px solid var(--surface-2);width:100%;background:none;border-left:none;border-right:none;border-top:none;text-align:left;}
+.list-item:last-child{border-bottom:none;}
+.list-item .t{font-size:15.5px;font-weight:500;}
+.list-item .s{font-size:12.5px;color:var(--faint);margin-top:2px;}
+.list-item .chev{color:var(--ghost);}
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  background:var(--ink);color:#fff;border:none;padding:14px 18px;border-radius:11px;
+  font-weight:700;font-size:14.5px;min-height:48px;transition:background .15s;
+}
+.btn:hover{background:#2C2A22;}
+.btn:disabled{opacity:.45;}
+.btn.sec{background:var(--surface);color:var(--ink);border:1.5px solid var(--border);font-weight:600;}
+.btn.sec:hover{background:var(--surface-2);}
+.btn.ghost{background:none;border:1.5px solid var(--border);color:var(--ink);font-weight:600;}
+.btn.ghost:hover{background:var(--surface-2);}
+.btn.small{padding:9px 12px;min-height:40px;font-size:12.5px;border-radius:8px;}
+.btn.block{width:100%;}
+.btn.danger{background:#FBEAE8;color:var(--course);border:1.5px solid var(--course);}
+.chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:2px;}
+.chips::-webkit-scrollbar{height:0;}
+.chip{border:1.5px solid var(--border);border-radius:999px;padding:9px 14px;font-size:13px;font-weight:600;color:#4A473F;white-space:nowrap;background:none;}
+.chip.on{border:2px solid var(--ink);color:var(--ink);font-weight:700;}
+.seg{display:flex;background:var(--surface-2);border-radius:11px;padding:3px;}
+.seg button{flex:1;border:none;background:none;padding:9px 4px;border-radius:8px;font-size:13px;font-weight:600;color:var(--dim);}
+.seg button.on{background:var(--surface);color:var(--ink);font-weight:700;box-shadow:0 1px 2px rgba(20,20,15,.12);}
+.empty{color:var(--faint);font-size:14px;padding:22px 0;text-align:center;}
+.hint{font-size:12.5px;color:var(--faint);line-height:1.5;}
+.status{font-size:12.5px;color:var(--aviron);line-height:1.5;min-height:16px;margin-top:8px;font-weight:600;}
+.bar{height:8px;border-radius:4px;background:var(--line);overflow:hidden;}
+.bar > i{display:block;height:100%;background:var(--ink);}
+.field{margin-bottom:14px;}
+.field label{display:block;font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);font-weight:600;margin-bottom:7px;}
+input[type=text],input[type=password],input[type=number],input[type=date],input[type=month],select,textarea{
+  width:100%;background:var(--surface);border:1.5px solid var(--border);color:var(--text);
+  padding:13px;border-radius:10px;min-height:48px;
+}
+textarea{min-height:70px;resize:vertical;}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--ink);}
+input[type=file]{font-size:14px;}
+.switch{width:46px;height:28px;border-radius:14px;background:var(--border);position:relative;flex:none;border:none;padding:0;transition:background .18s;}
+.switch i{position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;transition:left .18s;}
+.switch.on{background:var(--ink);}
+.switch.on i{left:21px;}
+
+/* ---------- semaine ---------- */
+.weekbars{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;align-items:end;height:76px;}
+.weekbars > button{background:none;border:none;padding:0;display:flex;flex-direction:column;justify-content:flex-end;gap:5px;height:100%;}
+.weekbars .b{border-radius:3px;min-height:3px;}
+.weekbars .l{font-size:10.5px;font-weight:600;text-align:center;color:var(--faint);}
+.weekbars .l.today{color:var(--ink);font-weight:700;}
+
+/* ---------- calendrier ---------- */
+.cal-head{display:grid;grid-template-columns:repeat(7,1fr);margin-bottom:6px;}
+.cal-head div{text-align:center;font-size:11px;font-weight:600;color:var(--ghost);}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;}
 .cal-cell{
-  border-radius:8px;border:2px solid var(--border);background:var(--surface);
-  padding:5px 3px;display:flex;flex-direction:column;gap:3px;position:relative;
-  min-height:74px;cursor:pointer;
+  aspect-ratio:1;border:none;background:none;border-radius:11px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
+  font:600 14px 'JetBrains Mono',monospace;color:var(--text);
 }
-.cal-cell.out{opacity:.35;}
-.cal-cell.today{border-color:var(--ink);}
-.cal-cell.selected{background:var(--ink);}
-.cal-cell.selected .cal-daynum{color:#fff;}
-.cal-daynum{font-size:13px;font-weight:700;font-family:'JetBrains Mono',monospace;}
-.cal-dots{display:flex;gap:3px;flex-wrap:wrap;}
-.cal-dot{width:9px;height:9px;border-radius:50%;flex:none;}
-.cal-dot.planned{background:transparent;border:2px solid currentColor;}
-.cal-legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:14px;font-size:12px;color:var(--text-dim);}
-.cal-legend span{display:inline-flex;align-items:center;gap:6px;}
-.cal-legend .sw{width:10px;height:10px;border-radius:50%;display:inline-block;}
-.cal-daylist{margin-top:16px;}
-.cal-daylist-item{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);}
-.cal-daylist-item:last-child{border-bottom:none;}
+.cal-cell.out{color:var(--ghost);}
+.cal-cell.today{box-shadow:inset 0 0 0 2px var(--border);}
+.cal-cell.sel{background:var(--ink);color:#fff;}
+.cal-cell .dots{display:flex;gap:3px;height:6px;align-items:center;}
+.cal-cell .d{width:6px;height:6px;border-radius:50%;}
 
-/* ---- calendrier : chips détaillées dans les cellules ---- */
-.cal-chip{font-size:9.5px;font-weight:700;border-radius:4px;padding:1px 4px;color:#fff;line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.cal-chip.planned{background:transparent;border:1px dashed currentColor;color:var(--text-dim);}
-.cal-chiplist{display:flex;flex-direction:column;gap:2px;width:100%;}
-.cal-more{font-size:9px;color:var(--text-dim);font-weight:700;}
-.mark-done-btn{background:var(--surface-2);border:2px solid var(--ink);color:var(--ink);font-size:11.5px;font-weight:700;padding:6px 10px;border-radius:7px;white-space:nowrap;min-height:36px;}
-.table-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 -4px;}
-.table-scroll td, .table-scroll th{padding-left:6px;padding-right:6px;}
-.table-scroll.wide table{min-width:560px;}
+/* ---------- récap ---------- */
+.stats3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.stats3 .n{font-family:'Space Grotesk',system-ui,sans-serif;font-size:24px;font-weight:700;line-height:1;}
+.stats3 .l{font-size:11.5px;color:var(--faint);margin-top:4px;}
+.tbl-head{display:grid;grid-template-columns:1fr 40px 56px 46px;gap:8px;padding-bottom:8px;border-bottom:2px solid var(--ink);}
+.tbl-head div{font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--ghost);font-weight:600;}
+.tbl-row{display:grid;grid-template-columns:1fr 40px 56px 46px;gap:8px;align-items:center;padding:11px 0;border-bottom:1px solid var(--line);}
+.tbl-row .n{font:600 13px 'JetBrains Mono',monospace;text-align:right;}
+.tbl-row .p{font-size:12.5px;font-weight:700;text-align:right;}
+.tbl-row .pb{height:3px;border-radius:2px;background:var(--line);margin-top:3px;overflow:hidden;}
+.axis{display:flex;justify-content:space-between;margin-top:6px;font:500 11px 'JetBrains Mono',monospace;color:var(--ghost);}
 
-/* ---- écran de verrouillage ---- */
-.lock-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;}
-.lock-card{max-width:380px;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:28px 24px;box-shadow:0 4px 16px rgba(0,0,0,.06);}
-.lock-card h2{margin:0 0 4px;font-size:20px;}
-.lock-card .lock-sub{color:var(--text-dim);font-size:13.5px;margin-bottom:18px;}
-.lock-error{color:var(--course);font-size:13px;font-weight:600;margin-top:8px;min-height:16px;}
+/* ---------- feuille modale ---------- */
+.sheet-backdrop{
+  position:fixed;inset:0;background:rgba(20,20,15,.5);z-index:50;
+  display:none;align-items:flex-end;justify-content:center;
+}
+.sheet-backdrop.open{display:flex;}
+.sheet{
+  background:var(--paper);width:100%;max-width:520px;max-height:92vh;overflow-y:auto;
+  border-radius:20px 20px 0 0;padding:16px 22px calc(24px + env(safe-area-inset-bottom));
+  animation:rise .22s cubic-bezier(.22,.61,.36,1);
+}
+@keyframes rise{from{transform:translateY(24px);opacity:.6;}to{transform:none;opacity:1;}}
+@media (min-width:640px){
+  .sheet-backdrop{align-items:center;}
+  .sheet{border-radius:18px;max-height:88vh;}
+}
+.grab{width:38px;height:4px;border-radius:2px;background:var(--border);margin:0 auto 14px;}
+.sheet-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:20px;}
+.sheet-head h2{font-size:22px;line-height:1.15;}
+.sheet-close{background:none;border:none;font-size:14px;font-weight:600;color:var(--aviron);padding:6px 0;}
+.sportpick{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
+.sportpick button{border:1.5px solid var(--border);background:var(--surface);border-radius:10px;padding:12px 4px;font-size:12.5px;font-weight:600;min-height:52px;}
+.sportpick button.on{color:#fff;font-weight:700;border-width:2px;}
+.quick{display:flex;gap:8px;}
+.quick button{flex:1;border:1.5px solid var(--border);background:var(--surface);border-radius:10px;padding:12px 2px;font-size:13.5px;font-weight:600;min-height:46px;}
+.quick button.on{border:2px solid var(--ink);font-weight:700;}
+.rpe{display:grid;grid-template-columns:repeat(10,1fr);gap:4px;}
+.rpe button{height:36px;border:none;border-radius:6px;background:var(--line);font-size:11px;color:var(--dim);padding:0;}
+.rpe button.on{background:var(--ink);color:#fff;font-weight:700;}
+.feel{display:flex;gap:6px;}
+.feel button{flex:1;border:1.5px solid var(--border);background:var(--surface);border-radius:10px;min-height:48px;font-size:14px;color:var(--dim);}
+.feel button.on{border:2px solid var(--ink);color:var(--ink);font-weight:700;}
+.toggle-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin-bottom:14px;}
+.opt-head{display:flex;align-items:center;justify-content:space-between;width:100%;background:none;border:none;padding:14px 0;border-top:1px solid var(--line);font-size:14.5px;font-weight:600;}
 
-/* ---- paramètres : sous-onglets ---- */
-.subtabs{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap;}
-.subtabs button{background:var(--surface-2);border:2px solid var(--border);color:var(--text);padding:8px 14px;border-radius:999px;font-size:13px;font-weight:700;}
-.subtabs button.active{background:var(--ink);color:#fff;border-color:var(--ink);}
-
-/* ---- objectifs ---- */
-.goal-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);}
-.goal-row:last-child{border-bottom:none;}
-.goal-label{width:92px;flex:none;}
-.goal-bar-wrap{flex:1;height:10px;background:var(--surface-2);border-radius:999px;overflow:hidden;}
-.goal-bar-fill{height:100%;border-radius:999px;transition:width .3s;}
-.goal-num{width:64px;flex:none;text-align:right;font-size:12px;color:var(--text-dim);font-weight:700;}
+/* ---------- verrouillage ---------- */
+#lockScreen{height:100%;overflow-y:auto;display:none;}
+.lock-wrap{min-height:100%;display:flex;flex-direction:column;justify-content:center;padding:32px 26px calc(32px + env(safe-area-inset-bottom));max-width:460px;margin:0 auto;}
+.lock-wrap h1{font-size:27px;line-height:1.15;letter-spacing:-0.02em;margin:22px 0 6px;}
+.lock-sub{font-size:14.5px;line-height:1.55;color:var(--dim);margin-bottom:28px;}
+.lock-error{color:var(--course);font-size:13px;font-weight:600;margin-top:10px;min-height:16px;}
 </style>
 </head>
 <body>
+
 <div id="lockScreen"></div>
-<div id="app" style="display:none;">
+
+<div id="app">
   <header class="top">
-    <div class="logo">Carnet<span>//</span>Entraînement</div>
+    <div class="brand">Carnet d'entrainement</div>
   </header>
-  <nav class="tabs" id="tabs"></nav>
-  <div id="view"></div>
+  <div id="swipe">
+    <div id="track">
+      <section class="pane" id="pane0"></section>
+      <section class="pane" id="pane1"></section>
+      <section class="pane" id="pane2"></section>
+      <section class="pane" id="pane3"></section>
+      <section class="pane" id="pane4"></section>
+    </div>
+  </div>
+  <button class="fab" id="fabAdd" title="Ajouter une séance">+</button>
+  <nav class="tabbar" id="tabbar"></nav>
 </div>
 
-<button class="fab" id="fabAdd" title="Ajouter une séance" style="display:none;"><span>+</span></button>
-
-<div class="modal-backdrop" id="modalBackdrop">
-  <div class="modal modal-wrap" id="modalContent"></div>
-</div>
+<div class="sheet-backdrop" id="sheetBackdrop"><div class="sheet" id="sheet"></div></div>
 
 <script>
-/* ============ STORAGE HELPERS (localStorage — déploiement autonome) ============ */
+/* ============================================================
+   CARNET D'ENTRAINEMENT — application autonome (un seul fichier)
+   Données : localStorage de ce navigateur, sur cet appareil.
+   ============================================================ */
+
+/* ---------- stockage ---------- */
 const STORAGE_PREFIX = 'carnet-entrainement:';
 async function loadKey(key, fallback){
   try{
@@ -239,13 +258,1079 @@ async function loadKey(key, fallback){
 }
 async function saveKey(key, value){
   try{ localStorage.setItem(STORAGE_PREFIX+key, JSON.stringify(value)); }
-  catch(e){ console.error('storage write error', key, e); }
+  catch(e){ console.error('storage write error', key, e); alert("Impossible d'enregistrer : le stockage du navigateur est plein ou bloqué."); }
+}
+let SESSIONS = [], PLAN = [], SETTINGS = {};
+async function saveSessions(){ await saveKey('sessions', SESSIONS); }
+async function savePlan(){ await saveKey('plan', PLAN); }
+async function saveSettings(){ await saveKey('settings', SETTINGS); }
+
+const SPORTS = {
+  aviron:{ label:'Aviron', short:'Aviron', color:'#14657A', metric:'distance' },
+  velo:{ label:'Vélo', short:'Vélo', color:'#96620F', metric:'distance' },
+  course:{ label:'Course', short:'Course', color:'#A93A2C', metric:'distance' },
+  muscu:{ label:'Musculation', short:'Muscu', color:'#574B92', metric:'duration' },
+};
+const SPORT_KEYS = Object.keys(SPORTS);
+function sportColor(k){ return (SPORTS[k]||{}).color || '#6B685F'; }
+function sportLabel(k){ return (SPORTS[k]||{}).label || k; }
+
+/* ---------- utilitaires ---------- */
+function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
+function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function toLocalISO(d){
+  const y=d.getFullYear(), m=String(d.getMonth()+1).padStart(2,'0'), day=String(d.getDate()).padStart(2,'0');
+  return `${y}-${m}-${day}`;
+}
+function todayISO(){ return toLocalISO(new Date()); }
+function formatDuration(min){
+  if(min==null || min==='' || isNaN(min)) return null;
+  min = Math.round(Number(min));
+  if(min<=0) return null;
+  const h = Math.floor(min/60), m = min%60;
+  if(h===0) return `${m}min`;
+  if(m===0) return `${h}h`;
+  return `${h}h${String(m).padStart(2,'0')}`;
+}
+function formatDurationCompact(min){
+  if(min==null || min==='' || isNaN(min)) return null;
+  min = Math.round(Number(min));
+  if(min<=0) return null;
+  const h = Math.floor(min/60), m = min%60;
+  if(h===0) return `${m}m`;
+  if(m===0) return `${h}h`;
+  return `${h}h${String(m).padStart(2,'0')}`;
+}
+function fmtKm(v){ if(v==null||v==='') return null; const n=Math.round(Number(v)*10)/10; return isNaN(n)||n<=0?null:String(n).replace('.',',')+' km'; }
+function fmtDate(d){ const dt=new Date(d+'T00:00:00'); return dt.toLocaleDateString('fr-FR',{day:'2-digit',month:'short'}); }
+function fmtDateLong(d){ const dt=new Date(d+'T00:00:00'); return dt.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'}); }
+function cap(s){ return s.charAt(0).toUpperCase()+s.slice(1); }
+function startOfWeek(dateStr){
+  const d = new Date(dateStr+'T00:00:00');
+  d.setDate(d.getDate()-((d.getDay()+6)%7));
+  return d;
+}
+function isoWeekNum(dateStr){
+  const dt = new Date(dateStr+'T00:00:00');
+  dt.setHours(0,0,0,0);
+  dt.setDate(dt.getDate() + 3 - ((dt.getDay()+6)%7));
+  const week1 = new Date(dt.getFullYear(),0,4);
+  return 1 + Math.round(((dt-week1)/86400000 - 3 + ((week1.getDay()+6)%7))/7);
+}
+function weekRange(dateStr){
+  const mon = startOfWeek(dateStr);
+  const sun = new Date(mon); sun.setDate(mon.getDate()+6);
+  return [toLocalISO(mon), toLocalISO(sun)];
+}
+function inRange(d, a, b){ return d>=a && d<=b; }
+
+/* ============================================================
+   COQUILLE — onglets, balayage, rendu
+   ============================================================ */
+const TABS = [
+  {id:'aujourdhui', label:"Aujourd'hui"},
+  {id:'calendrier', label:'Calendrier'},
+  {id:'programme',  label:'Programme'},
+  {id:'recap',      label:'Récap'},
+  {id:'reglages',   label:'Réglages'},
+];
+let tabIndex = 0;
+let calDate = new Date();
+let calSelected = null;
+let planFilter = 'semaine';
+let recapPeriod = 'semaine';
+let recapSport = 'tous';
+let settingsPage = null;
+
+function renderTabbar(){
+  document.getElementById('tabbar').innerHTML = TABS.map((t,i)=>
+    `<button data-act="tab" data-i="${i}" class="${i===tabIndex?'on':''}"><i></i><span>${t.label}</span></button>`
+  ).join('');
+}
+function setTrack(px, animate){
+  const track = document.getElementById('track');
+  track.style.transition = animate===false ? 'none' : 'transform .3s cubic-bezier(.22,.61,.36,1)';
+  track.style.transform = `translateX(calc(${-tabIndex*20}% + ${px||0}px))`;
+}
+function goTab(i, keepScroll){
+  i = Math.max(0, Math.min(TABS.length-1, i));
+  tabIndex = i;
+  renderTabbar();
+  setTrack(0, true);
+  renderAll();
+  if(!keepScroll){ const p = document.getElementById('pane'+i); if(p) p.scrollTop = 0; }
+}
+function renderAll(){
+  document.getElementById('pane0').innerHTML = viewAujourdhui();
+  document.getElementById('pane1').innerHTML = viewCalendrier();
+  document.getElementById('pane2').innerHTML = viewProgramme();
+  document.getElementById('pane3').innerHTML = viewRecap();
+  document.getElementById('pane4').innerHTML = viewReglages();
 }
 
-/* ============ SAUVEGARDE / RESTAURATION (export-import JSON) ============ */
-function exportBackup(){
+/* balayage gauche / droite entre les onglets */
+(function initSwipe(){
+  let st = null;
+  const el = () => document.getElementById('swipe');
+  document.addEventListener('pointerdown', e=>{
+    const zone = el(); if(!zone || !zone.contains(e.target)) return;
+    if(document.getElementById('sheetBackdrop').classList.contains('open')) return;
+    if(e.target.closest('input,textarea,select,.chips')) return;
+    st = {x:e.clientX, y:e.clientY, w:zone.clientWidth, axis:null};
+  });
+  document.addEventListener('pointermove', e=>{
+    if(!st) return;
+    const dx = e.clientX-st.x, dy = e.clientY-st.y;
+    if(!st.axis){
+      if(Math.abs(dx)<8 && Math.abs(dy)<8) return;
+      st.axis = Math.abs(dx)>Math.abs(dy) ? 'x' : 'y';
+    }
+    if(st.axis!=='x') return;
+    let d = dx;
+    if((tabIndex===0 && d>0) || (tabIndex===TABS.length-1 && d<0)) d *= .28;
+    st.d = d;
+    setTrack(d, false);
+  });
+  const end = ()=>{
+    if(!st){ return; }
+    const s = st; st = null;
+    if(s.axis!=='x'){ return; }
+    const thr = Math.min(90, s.w*0.22);
+    const d = s.d||0;
+    if(d < -thr) goTab(tabIndex+1);
+    else if(d > thr) goTab(tabIndex-1);
+    else setTrack(0, true);
+  };
+  document.addEventListener('pointerup', end);
+  document.addEventListener('pointercancel', end);
+})();
+
+/* ============================================================
+   ONGLET 1 — AUJOURD'HUI
+   ============================================================ */
+function weekData(refISO){
+  const mon = startOfWeek(refISO);
+  const labels = ['L','M','M','J','V','S','D'];
+  const days = [];
+  for(let i=0;i<7;i++){
+    const d = new Date(mon); d.setDate(mon.getDate()+i);
+    const iso = toLocalISO(d);
+    const done = SESSIONS.filter(s=>s.date===iso);
+    const planned = PLAN.filter(p=>p.date===iso && !p.linkedSessionId);
+    days.push({
+      iso, label:labels[i], num:d.getDate(),
+      duration: done.reduce((a,s)=>a+(Number(s.duration)||0),0),
+      plannedDuration: planned.reduce((a,p)=>a+(Number(p.targetDuration)||0),0),
+      done, planned,
+    });
+  }
+  return days;
+}
+
+function viewAujourdhui(){
+  const today = todayISO();
+  const days = weekData(today);
+  const total = days.reduce((a,d)=>a+d.duration,0);
+  const count = days.reduce((a,d)=>a+d.done.length,0);
+  const goals = SETTINGS.goals || {};
+  const goalTotal = Object.values(goals).reduce((a,g)=>a+(g.sessions||0),0);
+  const maxBar = Math.max(...days.map(d=>Math.max(d.duration, d.plannedDuration)), 60);
+
+  const bars = days.map(d=>{
+    const hDone = Math.max(3, Math.round(d.duration/maxBar*70));
+    const hPlan = Math.max(3, Math.round(d.plannedDuration/maxBar*70));
+    let inner = '';
+    if(d.duration>0){
+      const c = sportColor(d.done[0].sport);
+      inner = `<div class="b" style="height:${hDone}px;background:${c};"></div>`;
+    } else if(d.plannedDuration>0 || d.planned.length){
+      const c = sportColor(d.planned[0].sport);
+      inner = `<div class="b" style="height:${d.plannedDuration>0?hPlan:20}px;border:1.5px dashed ${c};"></div>`;
+    } else {
+      inner = `<div class="b" style="height:3px;background:#DCD8CC;"></div>`;
+    }
+    return `<button data-act="goday" data-d="${d.iso}">${inner}<div class="l ${d.iso===today?'today':''}">${d.label}</div></button>`;
+  }).join('');
+
+  const todaySessions = SESSIONS.filter(s=>s.date===today);
+  const todayPlans = PLAN.filter(p=>p.date===today && !p.linkedSessionId);
+
+  let todayBlock = '';
+  if(todayPlans.length){
+    todayBlock += todayPlans.map(p=>`
+      <div class="card" style="display:flex;flex-direction:column;gap:14px;margin-bottom:12px;">
+        <div style="display:flex;align-items:flex-start;gap:10px;">
+          <span class="dot plan" style="color:${sportColor(p.sport)};margin-top:5px;"></span>
+          <div style="flex:1;">
+            <div style="font-size:16px;font-weight:600;line-height:1.25;">${esc(p.title||sportLabel(p.sport))}</div>
+            <div class="sub" style="margin-top:2px;">Prévue au programme${p.targetDuration?' · '+formatDuration(p.targetDuration):''}${p.targetDistance?' · '+fmtKm(p.targetDistance):''}</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn" style="flex:1;" data-act="mark-done" data-id="${p.id}">Marquer réalisée</button>
+          <button class="btn sec" data-act="edit-plan" data-id="${p.id}">Détails</button>
+        </div>
+      </div>`).join('');
+  }
+  if(todaySessions.length){
+    todayBlock += `<div>${todaySessions.map(s=>`
+      <button class="rowline" style="width:100%;background:none;border-top:none;border-left:none;border-right:none;text-align:left;" data-act="edit-session" data-id="${s.id}">
+        <span class="dot" style="background:${sportColor(s.sport)}"></span>
+        <div style="flex:1;"><div class="t">${sportLabel(s.sport)}${s.notes?' — '+esc(s.notes.split('\n')[0].slice(0,40)):''}</div></div>
+        <span class="val">${formatDuration(s.duration)||'fait'}</span>
+      </button>`).join('')}</div>`;
+  }
+  if(!todayBlock){
+    todayBlock = `<div class="card" style="text-align:center;">
+      <div class="sub" style="margin-bottom:14px;">Rien de prévu aujourd'hui.</div>
+      <button class="btn ghost block" data-act="add-session" data-d="${today}">Ajouter une séance</button>
+    </div>`;
+  }
+
+  const upcoming = PLAN.filter(p=>!p.linkedSessionId && p.date>today).sort((a,b)=>a.date.localeCompare(b.date)).slice(0,4);
+
+  return `
+  <div>
+    <div class="kicker">${cap(fmtDateLong(today))}</div>
+    <h1 class="h-page" style="margin-top:4px;">Semaine ${isoWeekNum(today)}</h1>
+  </div>
+
+  <div>
+    <div style="display:flex;align-items:flex-end;gap:14px;margin-bottom:14px;">
+      <div class="big" style="font-size:40px;line-height:.9;">${formatDuration(total)||'0min'}</div>
+      <div class="sub" style="padding-bottom:3px;">${count} séance${count>1?'s':''} cette semaine${goalTotal?`<br>objectif ${goalTotal} séance${goalTotal>1?'s':''}`:''}</div>
+    </div>
+    <div class="weekbars">${bars}</div>
+  </div>
+
+  <div>
+    <div class="kicker" style="margin-bottom:10px;">Aujourd'hui</div>
+    ${todayBlock}
+  </div>
+
+  <div>
+    <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:10px;">
+      <div class="kicker">À venir</div>
+      <button class="sheet-close" data-act="tab" data-i="2">Tout le programme</button>
+    </div>
+    ${upcoming.length ? upcoming.map(p=>`
+      <button class="rowline" style="width:100%;background:none;border-top:none;border-left:none;border-right:none;text-align:left;" data-act="edit-plan" data-id="${p.id}">
+        <span class="daykey">${fmtDate(p.date).toUpperCase()}</span>
+        <span class="dot plan" style="color:${sportColor(p.sport)}"></span>
+        <div style="flex:1;"><div class="t">${esc(p.title||sportLabel(p.sport))}</div></div>
+        <span class="val">${formatDuration(p.targetDuration)||fmtKm(p.targetDistance)||''}</span>
+      </button>`).join('')
+      : `<div class="empty">Aucune séance planifiée. Importe ton programme depuis Réglages.</div>`}
+  </div>`;
+}
+
+/* ============================================================
+   ONGLET 2 — CALENDRIER
+   ============================================================ */
+function viewCalendrier(){
+  const year = calDate.getFullYear(), month = calDate.getMonth();
+  const first = new Date(year, month, 1);
+  const offset = (first.getDay()+6)%7;
+  const gridStart = new Date(year, month, 1-offset);
+  const todayIso = todayISO();
+  const sel = calSelected || todayIso;
+
+  let cells = '';
+  for(let i=0;i<42;i++){
+    const d = new Date(gridStart); d.setDate(gridStart.getDate()+i);
+    const iso = toLocalISO(d);
+    const out = d.getMonth()!==month;
+    const done = SESSIONS.filter(s=>s.date===iso);
+    const planned = PLAN.filter(p=>p.date===iso && !p.linkedSessionId);
+    const dots = [
+      ...done.slice(0,3).map(s=>`<span class="d" style="background:${sportColor(s.sport)}"></span>`),
+      ...planned.slice(0,3-Math.min(3,done.length)).map(p=>`<span class="d" style="border:1.5px solid ${sportColor(p.sport)}"></span>`),
+    ].join('');
+    cells += `<button class="cal-cell ${out?'out':''} ${iso===todayIso?'today':''} ${iso===sel?'sel':''}" data-act="cal-day" data-d="${iso}">
+      ${d.getDate()}<span class="dots">${dots}</span></button>`;
+  }
+
+  const selSessions = SESSIONS.filter(s=>s.date===sel);
+  const selPlans = PLAN.filter(p=>p.date===sel);
+  const selTotal = selSessions.reduce((a,s)=>a+(Number(s.duration)||0),0);
+
+  const detail = (selSessions.length||selPlans.length) ? `
+    ${selPlans.filter(p=>!p.linkedSessionId).map(p=>`
+      <div style="border:1.5px dashed var(--border);border-radius:12px;padding:14px;display:flex;align-items:center;gap:12px;">
+        <span class="dot plan" style="color:${sportColor(p.sport)}"></span>
+        <div style="flex:1;">
+          <div style="font-size:15px;font-weight:600;line-height:1.3;">${esc(p.title||sportLabel(p.sport))}</div>
+          <div class="hint" style="margin-top:2px;">Prévue${p.targetDuration?' · '+formatDuration(p.targetDuration):''}${p.targetDistance?' · '+fmtKm(p.targetDistance):''}</div>
+        </div>
+        <button class="btn small" data-act="mark-done" data-id="${p.id}">Réalisée</button>
+      </div>`).join('')}
+    ${selSessions.map(s=>`
+      <button class="card" style="display:flex;align-items:center;gap:12px;width:100%;border:none;text-align:left;" data-act="edit-session" data-id="${s.id}">
+        <span class="dot" style="background:${sportColor(s.sport)}"></span>
+        <div style="flex:1;">
+          <div style="font-size:15px;font-weight:600;line-height:1.3;">${sportLabel(s.sport)}${s.notes?' — '+esc(s.notes.split('\n')[0].slice(0,32)):''}</div>
+          <div class="hint" style="margin-top:2px;">${[formatDuration(s.duration), fmtKm(s.distance), s.rpe?'RPE '+s.rpe:null, s.completion!=null?s.completion+' % du planning':null].filter(Boolean).join(' · ')||'Séance réalisée'}</div>
+        </div>
+        <span style="color:var(--faint);">✎</span>
+      </button>`).join('')}
+  ` : `<div class="empty">Rien ce jour-là.</div>`;
+
+  return `
+  <div style="display:flex;align-items:center;justify-content:space-between;">
+    <h1 class="h-page">${cap(first.toLocaleDateString('fr-FR',{month:'long',year:'numeric'}))}</h1>
+    <div style="display:flex;gap:6px;">
+      <button class="btn ghost" style="width:40px;height:40px;min-height:40px;padding:0;border-radius:10px;" data-act="cal-nav" data-n="-1">‹</button>
+      <button class="btn ghost" style="width:40px;height:40px;min-height:40px;padding:0;border-radius:10px;" data-act="cal-nav" data-n="1">›</button>
+    </div>
+  </div>
+
+  <div>
+    <div class="cal-head"><div>L</div><div>M</div><div>M</div><div>J</div><div>V</div><div>S</div><div>D</div></div>
+    <div class="cal-grid">${cells}</div>
+    <div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:14px;font-size:12px;color:var(--dim);">
+      <span style="display:inline-flex;align-items:center;gap:6px;"><span style="width:8px;height:8px;border-radius:50%;background:var(--ink);"></span>réalisée</span>
+      <span style="display:inline-flex;align-items:center;gap:6px;"><span style="width:8px;height:8px;border-radius:50%;border:1.5px solid var(--ink);"></span>prévue</span>
+      <span>la couleur indique le sport</span>
+    </div>
+  </div>
+
+  <div>
+    <div class="kicker" style="margin-bottom:12px;">${cap(fmtDateLong(sel))}${selTotal?' · '+formatDuration(selTotal):''}</div>
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      ${detail}
+      <button class="btn ghost block" data-act="add-session" data-d="${sel}">+ Ajouter une séance ce jour</button>
+    </div>
+  </div>`;
+}
+
+/* ============================================================
+   ONGLET 3 — PROGRAMME
+   ============================================================ */
+function planCompletion(p){
+  if(!p.linkedSessionId) return null;
+  const s = SESSIONS.find(x=>x.id===p.linkedSessionId);
+  if(!s) return null;
+  if(s.completion!=null) return s.completion;
+  const metric = SPORTS[p.sport].metric;
+  if(metric==='distance' && p.targetDistance && s.distance) return Math.round(s.distance/p.targetDistance*100);
+  if(p.targetDuration && s.duration) return Math.round(s.duration/p.targetDuration*100);
+  return 100;
+}
+
+function viewProgramme(){
+  const today = todayISO();
+  const [monISO, sunISO] = weekRange(today);
+  let list = PLAN.slice().sort((a,b)=>a.date.localeCompare(b.date));
+  if(planFilter==='semaine') list = list.filter(p=>inRange(p.date, monISO, sunISO));
+  else if(planFilter==='avenir') list = list.filter(p=>p.date>sunISO);
+  else if(planFilter==='passe') list = list.filter(p=>p.date<monISO).reverse();
+
+  const doneAll = PLAN.filter(p=>p.linkedSessionId).length;
+  const pct = PLAN.length ? Math.round(doneAll/PLAN.length*100) : 0;
+
+  const groups = {};
+  list.forEach(p=>{
+    const k = isoWeekNum(p.date)+'|'+startOfWeek(p.date).getFullYear();
+    (groups[k] = groups[k] || []).push(p);
+  });
+
+  const body = Object.keys(groups).length ? Object.entries(groups).map(([k, items])=>{
+    const wk = k.split('|')[0];
+    const dur = items.reduce((a,p)=>a+(Number(p.targetDuration)||0),0);
+    const doneN = items.filter(p=>p.linkedSessionId).length;
+    return `
+    <div>
+      <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:8px;">
+        <div class="kicker">Semaine ${wk} · ${doneN} sur ${items.length}</div>
+        <span class="val">${formatDuration(dur)||''}</span>
+      </div>
+      ${items.map(p=>{
+        const c = planCompletion(p);
+        const isToday = p.date===today && !p.linkedSessionId;
+        return `<div class="rowline" style="${isToday?'background:#FFF7F5;':''}">
+          <span class="daykey">${fmtDate(p.date).toUpperCase()}</span>
+          <span class="dot ${p.linkedSessionId?'':'plan'}" style="${p.linkedSessionId?'background:'+sportColor(p.sport):'color:'+sportColor(p.sport)}"></span>
+          <button style="flex:1;background:none;border:none;text-align:left;padding:0;min-width:0;" data-act="edit-plan" data-id="${p.id}">
+            <div class="t">${esc(p.title||sportLabel(p.sport))}</div>
+            <div class="s">${isToday?'à faire aujourd\'hui':[formatDuration(p.targetDuration)?'cible '+formatDuration(p.targetDuration):null, fmtKm(p.targetDistance)].filter(Boolean).join(' / ')||sportLabel(p.sport)}</div>
+          </button>
+          ${p.linkedSessionId
+            ? `<span style="font-size:12px;font-weight:700;color:var(--aviron);">${c!=null?c+' %':'fait'}</span>`
+            : `<button class="btn small" data-act="mark-done" data-id="${p.id}">Réalisée</button>`}
+        </div>`;
+      }).join('')}
+    </div>`;
+  }).join('') : `<div class="empty">Aucune séance sur cette période.</div>`;
+
+  return `
+  <div>
+    <h1 class="h-page" style="margin-bottom:14px;">Programme</h1>
+    <div style="display:flex;align-items:flex-end;gap:12px;">
+      <div class="big" style="font-size:34px;line-height:.9;">${pct} %</div>
+      <div class="sub" style="padding-bottom:3px;">réalisé sur l'ensemble du programme<br>${doneAll} séance${doneAll>1?'s':''} sur ${PLAN.length}</div>
+    </div>
+    <div class="bar" style="margin-top:12px;"><i style="width:${pct}%;"></i></div>
+  </div>
+
+  <div class="chips">
+    <button class="chip ${planFilter==='semaine'?'on':''}" data-act="plan-filter" data-v="semaine">Cette semaine</button>
+    <button class="chip ${planFilter==='avenir'?'on':''}" data-act="plan-filter" data-v="avenir">À venir</button>
+    <button class="chip ${planFilter==='passe'?'on':''}" data-act="plan-filter" data-v="passe">Passé</button>
+    <button class="chip ${planFilter==='tout'?'on':''}" data-act="plan-filter" data-v="tout">Tout</button>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:24px;">${body}</div>
+
+  <div style="display:flex;gap:10px;">
+    <button class="btn sec" style="flex:1;" data-act="open-import">Importer un programme</button>
+    <button class="btn sec" data-act="add-plan">+ Séance</button>
+  </div>`;
+}
+
+/* ============================================================
+   ONGLET 4 — RÉCAP
+   ============================================================ */
+function recapRange(){
+  const today = todayISO();
+  if(recapPeriod==='semaine'){
+    const [a,b] = weekRange(today);
+    return {a, b, title:`Semaine ${isoWeekNum(today)} · ${fmtDate(a)} au ${fmtDate(b)}`};
+  }
+  if(recapPeriod==='mois'){
+    const d = new Date();
+    const a = toLocalISO(new Date(d.getFullYear(), d.getMonth(), 1));
+    const b = toLocalISO(new Date(d.getFullYear(), d.getMonth()+1, 0));
+    return {a, b, title:cap(d.toLocaleDateString('fr-FR',{month:'long',year:'numeric'}))};
+  }
+  const y = new Date().getFullYear();
+  return {a:y+'-01-01', b:y+'-12-31', title:'Année '+y};
+}
+
+function curveSVG(values, labels, unitLabel){
+  const w=320, h=96, pad=4, base=95, top=12;
+  const max = Math.max(...values, 1);
+  const n = values.length;
+  const pts = values.map((v,i)=>{
+    const x = n>1 ? pad + i*(w-2*pad)/(n-1) : w/2;
+    const y = base - (v/max)*(base-top);
+    return `${Math.round(x*10)/10},${Math.round(y*10)/10}`;
+  });
+  const area = `${pad},${base} ${pts.join(' ')} ${w-pad},${base}`;
+  return `
+  <svg viewBox="0 0 ${w} ${h}" style="width:100%;height:96px;display:block;" preserveAspectRatio="none">
+    <line x1="0" y1="${base}" x2="${w}" y2="${base}" stroke="#DCD8CC" stroke-width="1"></line>
+    <line x1="0" y1="${(base+top)/2}" x2="${w}" y2="${(base+top)/2}" stroke="#EAE6DB" stroke-width="1" stroke-dasharray="3 4"></line>
+    <polygon points="${area}" fill="rgba(20,20,15,.07)"></polygon>
+    <polyline points="${pts.join(' ')}" fill="none" stroke="#14140F" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"></polyline>
+  </svg>
+  <div class="axis"><span>${labels[0]||''}</span><span style="color:var(--faint);">max ${unitLabel}</span><span>${labels[labels.length-1]||''}</span></div>`;
+}
+
+function recapSeries(a, b){
+  const inP = SESSIONS.filter(s=>inRange(s.date, a, b));
+  if(recapPeriod==='semaine'){
+    const days = weekData(todayISO());
+    return {values: days.map(d=>d.duration), labels:['L','M','M','J','V','S','D']};
+  }
+  if(recapPeriod==='mois'){
+    const buckets = {}, labels = [];
+    let cur = startOfWeek(a);
+    while(toLocalISO(cur) <= b){
+      const k = toLocalISO(cur);
+      buckets[k] = 0; labels.push('S'+isoWeekNum(k));
+      cur = new Date(cur); cur.setDate(cur.getDate()+7);
+    }
+    inP.forEach(s=>{
+      const k = toLocalISO(startOfWeek(s.date));
+      if(k in buckets) buckets[k] += Number(s.duration)||0;
+    });
+    return {values:Object.values(buckets), labels};
+  }
+  const months = new Array(12).fill(0);
+  inP.forEach(s=>{ months[Number(s.date.slice(5,7))-1] += Number(s.duration)||0; });
+  return {values:months, labels:['J','F','M','A','M','J','J','A','S','O','N','D']};
+}
+
+function viewRecap(){
+  const {a, b, title} = recapRange();
+  const inP = SESSIONS.filter(s=>inRange(s.date, a, b)).sort((x,y)=>y.date.localeCompare(x.date));
+  const totalDur = inP.reduce((acc,s)=>acc+(Number(s.duration)||0),0);
+  const totalKm = inP.reduce((acc,s)=>acc+(Number(s.distance)||0),0);
+
+  const per = {};
+  SPORT_KEYS.forEach(k=>per[k]={count:0,duration:0,distance:0});
+  inP.forEach(s=>{ const p=per[s.sport]; if(!p) return; p.count++; p.duration+=Number(s.duration)||0; p.distance+=Number(s.distance)||0; });
+  const order = SPORT_KEYS.slice().sort((x,y)=>per[y].duration-per[x].duration);
+
+  const {values, labels} = recapSeries(a, b);
+  const seriesLabel = recapPeriod==='semaine' ? 'heures par jour' : recapPeriod==='mois' ? 'heures par semaine' : 'heures par mois';
+
+  const rows = order.map(k=>{
+    const p = per[k];
+    const share = totalDur ? Math.round(p.duration/totalDur*100) : 0;
+    return `<div class="tbl-row">
+      <div style="display:flex;align-items:center;gap:9px;min-width:0;">
+        <span class="dot" style="background:${sportColor(k)}"></span>
+        <div style="min-width:0;">
+          <div style="font-size:14.5px;font-weight:500;line-height:1.25;">${sportLabel(k)}</div>
+          <div style="font-size:11.5px;color:var(--ghost);margin-top:1px;">${fmtKm(p.distance)||'—'}</div>
+        </div>
+      </div>
+      <div class="n">${p.count}</div>
+      <div class="n">${formatDuration(p.duration)||'—'}</div>
+      <div><div class="p">${share} %</div><div class="pb"><i style="display:block;height:100%;width:${share}%;background:${sportColor(k)}"></i></div></div>
+    </div>`;
+  }).join('');
+
+  const filtered = recapSport==='tous' ? inP : inP.filter(s=>s.sport===recapSport);
+  const activities = filtered.length ? filtered.slice(0,40).map(s=>`
+    <button class="rowline" style="width:100%;background:none;border-top:none;border-left:none;border-right:none;text-align:left;" data-act="edit-session" data-id="${s.id}">
+      <span class="dot" style="background:${sportColor(s.sport)}"></span>
+      <div style="flex:1;min-width:0;">
+        <div class="t">${sportLabel(s.sport)}</div>
+        <div class="s">${[cap(fmtDate(s.date)), fmtKm(s.distance), s.rpe?'RPE '+s.rpe:null, s.source||'manuel'].filter(Boolean).join(' · ')}</div>
+      </div>
+      <span class="val">${formatDuration(s.duration)||'—'}</span>
+    </button>`).join('') : `<div class="empty">Aucune activité sur cette période.</div>`;
+
+  return `
+  <div style="display:flex;align-items:baseline;justify-content:space-between;">
+    <h1 class="h-page">Récap</h1>
+    <button class="sheet-close" data-act="open-export">Exporter en CSV</button>
+  </div>
+
+  <div class="seg">
+    <button class="${recapPeriod==='semaine'?'on':''}" data-act="recap-period" data-v="semaine">Semaine</button>
+    <button class="${recapPeriod==='mois'?'on':''}" data-act="recap-period" data-v="mois">Mois</button>
+    <button class="${recapPeriod==='annee'?'on':''}" data-act="recap-period" data-v="annee">Année</button>
+  </div>
+
+  <div>
+    <div class="kicker" style="margin-bottom:10px;">${title}</div>
+    <div class="stats3">
+      <div><div class="n">${formatDuration(totalDur)||'0min'}</div><div class="l">durée</div></div>
+      <div><div class="n">${inP.length}</div><div class="l">séances</div></div>
+      <div><div class="n">${totalKm?String(Math.round(totalKm*10)/10).replace('.',','):'0'}</div><div class="l">km</div></div>
+    </div>
+  </div>
+
+  <div>
+    <div class="kicker" style="margin-bottom:10px;">Progression — ${seriesLabel}</div>
+    ${curveSVG(values, labels, formatDuration(Math.max(...values,1))||'—')}
+  </div>
+
+  <div>
+    <div class="kicker" style="margin-bottom:10px;">Répartition par sport</div>
+    <div class="tbl-head"><div>Sport</div><div style="text-align:right;">Séa.</div><div style="text-align:right;">Durée</div><div style="text-align:right;">Part</div></div>
+    ${rows}
+  </div>
+
+  <div>
+    <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:10px;">
+      <div class="kicker">Activités réalisées</div>
+      <span class="hint">${filtered.length} sur la période</span>
+    </div>
+    <div class="chips" style="margin-bottom:6px;">
+      <button class="chip ${recapSport==='tous'?'on':''}" data-act="recap-sport" data-v="tous">Tous</button>
+      ${SPORT_KEYS.map(k=>`<button class="chip ${recapSport===k?'on':''}" data-act="recap-sport" data-v="${k}">${sportLabel(k)}</button>`).join('')}
+    </div>
+    ${activities}
+    ${filtered.length>40?`<div class="hint" style="margin-top:10px;text-align:center;">40 activités affichées sur ${filtered.length} — utilise l'export CSV pour la liste complète.</div>`:''}
+  </div>`;
+}
+
+/* ============================================================
+   ONGLET 5 — RÉGLAGES
+   ============================================================ */
+function viewReglages(){
+  if(settingsPage) return settingsSubpage(settingsPage);
+  const auth = SETTINGS.auth || {};
+  const goals = SETTINGS.goals || {};
+  const goalTotal = Object.values(goals).reduce((a,g)=>a+(g.sessions||0),0);
+  const strava = SETTINGS.strava || {};
+  const notif = SETTINGS.notifications || {};
+  const lastBackup = SETTINGS.lastBackup ? cap(fmtDate(SETTINGS.lastBackup)) : 'jamais';
+
+  return `
+  <h1 class="h-page">Réglages</h1>
+
+  <div>
+    <div class="kicker" style="margin-bottom:8px;">Entraînement</div>
+    <div class="list">
+      <button class="list-item" data-act="settings-page" data-p="objectifs">
+        <div style="flex:1;"><div class="t">Objectifs hebdomadaires</div><div class="s">${goalTotal?goalTotal+' séance'+(goalTotal>1?'s':'')+' par semaine':'aucun objectif défini'}</div></div><span class="chev">›</span>
+      </button>
+      <button class="list-item" data-act="settings-page" data-p="import">
+        <div style="flex:1;"><div class="t">Importer un programme</div><div class="s">Excel ou PDF</div></div><span class="chev">›</span>
+      </button>
+    </div>
+  </div>
+
+  <div>
+    <div class="kicker" style="margin-bottom:8px;">Connexions</div>
+    <div class="list">
+      <button class="list-item" data-act="settings-page" data-p="strava">
+        <div style="flex:1;"><div class="t">Strava</div><div class="s">${strava.accessToken?'Connecté':(strava.workerUrl?'Relais configuré':'Non connecté')}</div></div>
+        ${strava.accessToken?'<span class="dot" style="background:var(--aviron);"></span>':''}<span class="chev">›</span>
+      </button>
+      <button class="list-item" data-act="settings-page" data-p="garmin">
+        <div style="flex:1;"><div class="t">Garmin</div><div class="s">Par export CSV ou via Strava</div></div><span class="chev">›</span>
+      </button>
+    </div>
+  </div>
+
+  <div>
+    <div class="kicker" style="margin-bottom:8px;">Données</div>
+    <div class="list">
+      <button class="list-item" data-act="export-backup">
+        <div style="flex:1;"><div class="t">Sauvegarder mes données</div><div class="s">Dernière sauvegarde : ${lastBackup}</div></div><span class="chev">›</span>
+      </button>
+      <button class="list-item" data-act="settings-page" data-p="restaurer">
+        <div style="flex:1;"><div class="t">Restaurer une sauvegarde</div></div><span class="chev">›</span>
+      </button>
+      <button class="list-item" data-act="open-export">
+        <div style="flex:1;"><div class="t">Exporter les séances en CSV</div></div><span class="chev">›</span>
+      </button>
+    </div>
+    <div class="hint" style="margin-top:8px;">${SESSIONS.length} séance${SESSIONS.length>1?'s':''} et ${PLAN.length} entrée${PLAN.length>1?'s':''} de planning stockées dans ce navigateur, sur cet appareil. Une sauvegarde régulière évite de tout perdre.</div>
+  </div>
+
+  <div>
+    <div class="kicker" style="margin-bottom:8px;">Compte et rappels</div>
+    <div class="list">
+      <button class="list-item" data-act="settings-page" data-p="compte">
+        <div style="flex:1;"><div class="t">Mot de passe et récupération</div><div class="s">${esc(auth.email||'—')}</div></div><span class="chev">›</span>
+      </button>
+      <div class="list-item">
+        <div style="flex:1;"><div class="t">Rappel de séance</div><div class="s">Seulement quand l'appli est ouverte</div></div>
+        <button class="switch ${notif.enabled?'on':''}" data-act="toggle-notif"><i></i></button>
+      </div>
+      <button class="list-item" data-act="lock-app">
+        <div style="flex:1;"><div class="t" style="color:var(--course);">Verrouiller l'application</div></div>
+      </button>
+    </div>
+    <div class="status" id="notifStatus"></div>
+  </div>`;
+}
+
+function subHeader(title){
+  return `<div style="display:flex;align-items:center;gap:12px;">
+    <button class="btn ghost" style="width:40px;height:40px;min-height:40px;padding:0;border-radius:10px;" data-act="settings-back">‹</button>
+    <h1 class="h-page">${title}</h1>
+  </div>`;
+}
+
+function settingsSubpage(page){
+  const auth = SETTINGS.auth || {};
+  const goals = SETTINGS.goals || {};
+  const strava = SETTINGS.strava || {};
+
+  if(page==='objectifs'){
+    const [a,b] = weekRange(todayISO());
+    const weekS = SESSIONS.filter(s=>inRange(s.date,a,b));
+    return `${subHeader('Objectifs')}
+    <div class="hint">Nombre de séances visées par semaine, par sport. La progression se calcule du lundi au dimanche.</div>
+    <div style="display:flex;flex-direction:column;gap:22px;">
+      ${SPORT_KEYS.map(k=>{
+        const target = (goals[k]||{}).sessions || 0;
+        const done = weekS.filter(s=>s.sport===k).length;
+        const rest = Math.max(0, target-done);
+        return `<div>
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
+            <span class="dot" style="background:${sportColor(k)}"></span>
+            <span style="flex:1;font-size:15.5px;font-weight:600;">${sportLabel(k)}</span>
+            <div style="display:flex;align-items:center;border:1.5px solid var(--border);border-radius:10px;overflow:hidden;">
+              <button style="width:44px;height:44px;border:none;background:none;font-size:18px;color:var(--dim);" data-act="goal" data-s="${k}" data-n="-1">−</button>
+              <span style="width:40px;text-align:center;font:700 15px 'JetBrains Mono',monospace;">${target}</span>
+              <button style="width:44px;height:44px;border:none;background:none;font-size:18px;color:var(--dim);" data-act="goal" data-s="${k}" data-n="1">+</button>
+            </div>
+          </div>
+          ${target?`<div style="display:grid;grid-template-columns:repeat(${target},1fr);gap:5px;margin-bottom:6px;">
+            ${new Array(target).fill(0).map((_,i)=>`<div style="height:9px;border-radius:5px;background:${i<done?sportColor(k):'var(--line)'};"></div>`).join('')}
+          </div>
+          <div class="hint" ${rest===0?'style="color:var(--aviron);font-weight:600;"':''}>${rest===0?'Objectif atteint':rest+' séance'+(rest>1?'s':'')+' restante'+(rest>1?'s':'')+" d'ici dimanche"}</div>`:''}
+        </div>`;
+      }).join('')}
+    </div>`;
+  }
+
+  if(page==='import'){
+    return `${subHeader('Importer')}
+    <div>
+      <div class="kicker" style="margin-bottom:8px;">Fichier Excel</div>
+      <div class="hint" style="margin-bottom:10px;">Colonnes attendues (l'ordre n'importe pas, en-têtes en français) : <b>Date</b> (jj/mm/aaaa), <b>Sport</b> (aviron / vélo / course / musculation), <b>Titre</b>, <b>Durée</b> (min), <b>Distance</b> (km, facultative).</div>
+      <input type="file" id="fileExcel" accept=".xlsx,.xls,.csv">
+      <div class="status" id="excelStatus"></div>
+    </div>
+    <div>
+      <div class="kicker" style="margin-bottom:8px;">Fichier PDF</div>
+      <div class="hint" style="margin-bottom:10px;">L'extraction depuis un PDF dépend de la mise en page du document. Le texte est extrait puis affiché pour vérification avant import.</div>
+      <input type="file" id="filePdf" accept=".pdf">
+      <div id="pdfArea" style="margin-top:12px;"></div>
+    </div>`;
+  }
+
+  if(page==='strava'){
+    return `${subHeader('Strava')}
+    <div class="hint">La connexion directe depuis un navigateur échoue à l'étape d'échange de jeton : Strava n'active pas les en-têtes CORS nécessaires sur <span class="mono">/oauth/token</span>. La solution fiable est un petit relais côté serveur, qui garde le Client Secret en sécurité. Un modèle prêt à l'emploi pour Cloudflare Workers (gratuit) est fourni dans le dossier <span class="mono">worker/</span> du dépôt.</div>
+    <div>
+      <div class="field"><label>URL du relais</label><input type="text" id="stravaWorkerUrl" value="${esc(strava.workerUrl||'')}" placeholder="https://ton-relais.workers.dev"></div>
+      <div class="field"><label>Client ID Strava</label><input type="text" id="stravaClientId" value="${esc(strava.clientId||'')}" placeholder="ex : 123456"></div>
+      <button class="btn block" data-act="strava-connect">Se connecter à Strava</button>
+      <div class="status" id="stravaStatus"></div>
+    </div>
+    ${strava.accessToken?`<div><button class="btn sec block" data-act="strava-sync">Synchroniser mes activités</button><div class="status" id="stravaSyncStatus"></div></div>`:''}
+    <div>
+      <div class="kicker" style="margin-bottom:8px;">Repli — jeton manuel</div>
+      <div class="hint" style="margin-bottom:10px;">Sans relais : va sur <a href="https://www.strava.com/settings/api" target="_blank" rel="noopener">strava.com/settings/api</a>, copie ton « Your Access Token » (valable 6 h) et colle-le ici.</div>
+      <div class="field"><label>Access token</label><input type="text" id="stravaManualToken" placeholder="colle ton token ici"></div>
+      <button class="btn sec block" data-act="strava-manual">Récupérer mes activités</button>
+      <div class="status" id="stravaManualStatus"></div>
+    </div>`;
+  }
+
+  if(page==='garmin'){
+    return `${subHeader('Garmin')}
+    <div class="hint">Garmin ne propose pas d'API personnelle en libre-service : leur programme développeur exige une entité légale et rejette les demandes à usage individuel. Les bibliothèques non officielles qui contournaient cette limite ont été cassées par un changement du flux d'authentification de Garmin en mars 2026. Ce carnet ne tente donc pas de connexion directe.</div>
+    <div class="hint"><b>Deux solutions qui fonctionnent :</b></div>
+    <ul class="hint" style="padding-left:18px;margin:0;display:flex;flex-direction:column;gap:8px;">
+      <li>Active la synchronisation Garmin → Strava dans ton compte Garmin Connect, puis n'utilise que la connexion Strava.</li>
+      <li>Exporte tes activités depuis Garmin Connect (Activités → icône export → CSV) et importe le fichier ci-dessous.</li>
+    </ul>
+    <div>
+      <input type="file" id="fileGarmin" accept=".csv,.tcx,.gpx">
+      <div class="status" id="garminStatus"></div>
+    </div>`;
+  }
+
+  if(page==='restaurer'){
+    return `${subHeader('Restaurer')}
+    <div class="hint">Importe un fichier de sauvegarde JSON exporté depuis cette application. Tu pourras choisir de fusionner avec les données existantes ou de les remplacer.</div>
+    <div><input type="file" id="fileBackup" accept=".json"><div class="status" id="backupStatus"></div></div>`;
+  }
+
+  if(page==='compte'){
+    return `${subHeader('Compte')}
+    <div class="hint">Compte associé : <b>${esc(auth.email||'—')}</b>. Le mot de passe est haché, jamais stocké en clair.</div>
+    <div>
+      <div class="kicker" style="margin-bottom:10px;">Changer le mot de passe</div>
+      <div class="field"><label>Mot de passe actuel</label><input type="password" id="pwCurrent"></div>
+      <div class="field"><label>Nouveau mot de passe</label><input type="password" id="pwNew"></div>
+      <div class="field"><label>Confirmer</label><input type="password" id="pwNew2"></div>
+      <button class="btn block" data-act="change-pw">Mettre à jour</button>
+      <div class="status" id="pwStatus"></div>
+    </div>
+    <div>
+      <div class="kicker" style="margin-bottom:10px;">Question de récupération</div>
+      <div class="hint" style="margin-bottom:10px;">Sans question secrète, un mot de passe oublié ne peut pas être réinitialisé sans effacer les données du site.</div>
+      <div class="field"><label>Question</label><input type="text" id="secQuestion" value="${esc(auth.secretQuestion||'')}" placeholder="ex : Le nom de mon premier club ?"></div>
+      <div class="field"><label>Réponse</label><input type="text" id="secAnswer" placeholder="Laisse vide pour ne pas changer"></div>
+      <button class="btn sec block" data-act="save-secret">Enregistrer</button>
+      <div class="status" id="secStatus"></div>
+    </div>`;
+  }
+  return '';
+}
+
+/* ============================================================
+   FEUILLES MODALES
+   ============================================================ */
+function openSheet(html){
+  document.getElementById('sheet').innerHTML = `<div class="grab"></div>`+html;
+  document.getElementById('sheetBackdrop').classList.add('open');
+  document.getElementById('sheet').scrollTop = 0;
+}
+function closeSheet(){ document.getElementById('sheetBackdrop').classList.remove('open'); }
+
+/* ---------- saisie d'une séance ---------- */
+let draft = null;
+const QUICK = [30, 45, 60, 90];
+
+function newDraft(date, sport){
+  return {id:null, date:date||todayISO(), sport:sport||'course', duration:null, distance:null,
+          rpe:null, feel:null, intervals:'', notes:'', linkedPlanId:'', more:false};
+}
+function openSessionSheet(){
+  const isEdit = !!draft.id;
+  const candidates = PLAN.filter(p=>p.sport===draft.sport && (!p.linkedSessionId || p.id===draft.linkedPlanId))
+    .sort((a,b)=>Math.abs(new Date(a.date)-new Date(draft.date+'T00:00:00')) - Math.abs(new Date(b.date)-new Date(draft.date+'T00:00:00')))
+    .slice(0,8);
+  const isMuscu = draft.sport==='muscu';
+
+  openSheet(`
+    <div class="sheet-head">
+      <h2>${isEdit?'Modifier la séance':'Nouvelle séance'}</h2>
+      <button class="sheet-close" data-act="close-sheet">Annuler</button>
+    </div>
+
+    <div class="field">
+      <label>Sport</label>
+      <div class="sportpick">
+        ${SPORT_KEYS.map(k=>`<button class="${draft.sport===k?'on':''}" style="${draft.sport===k?'background:'+sportColor(k)+';border-color:'+sportColor(k)+';':''}" data-act="draft-sport" data-v="${k}">${SPORTS[k].short}</button>`).join('')}
+      </div>
+    </div>
+
+    <div class="field"><label>Date</label><input type="date" id="dfDate" value="${draft.date}"></div>
+
+    <div class="field">
+      <label>Durée</label>
+      <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:10px;">
+        <span class="big" style="font-size:32px;">${draft.duration?formatDuration(draft.duration):'—'}</span>
+        <span class="hint">minutes</span>
+      </div>
+      <div class="quick">
+        ${QUICK.map(q=>`<button class="${draft.duration===q?'on':''}" data-act="draft-dur" data-v="${q}">${q>=60?formatDuration(q):q}</button>`).join('')}
+        <button data-act="draft-dur" data-v="+15">+15</button>
+      </div>
+      <input type="number" id="dfDuration" min="0" step="1" placeholder="Saisie libre (min)" value="${draft.duration||''}" style="margin-top:8px;">
+    </div>
+
+    <div class="field">
+      <label>Distance (km)</label>
+      <input type="number" id="dfDistance" min="0" step="0.1" placeholder="${isMuscu?'sans objet':'ex : 10,4'}" value="${draft.distance||''}" ${isMuscu?'disabled':''}>
+    </div>
+
+    <button class="opt-head" data-act="draft-more">
+      <span>Détails${draft.more?'':' (facultatif)'}</span>
+      <span style="color:var(--faint);">${draft.more?'▲':'▼'}</span>
+    </button>
+
+    ${draft.more?`
+    <div style="padding-top:4px;">
+      <div class="field">
+        <label>Ressenti</label>
+        <div class="feel">
+          <button class="${draft.feel==='dur'?'on':''}" data-act="draft-feel" data-v="dur">dur</button>
+          <button class="${draft.feel==='ok'?'on':''}" data-act="draft-feel" data-v="ok">ok</button>
+          <button class="${draft.feel==='bien'?'on':''}" data-act="draft-feel" data-v="bien">bien</button>
+        </div>
+      </div>
+      <div class="field">
+        <label>Intensité — RPE ${draft.rpe?'· '+draft.rpe:''}</label>
+        <div class="rpe">
+          ${new Array(10).fill(0).map((_,i)=>`<button class="${draft.rpe&&draft.rpe>=i+1?'on':''}" data-act="draft-rpe" data-v="${i+1}">${i+1}</button>`).join('')}
+        </div>
+      </div>
+      <div class="field">
+        <label>Fractionné</label>
+        <input type="text" id="dfIntervals" value="${esc(draft.intervals||'')}" placeholder="ex : 8 × 500 m / récup 2 min">
+      </div>
+      <div class="field">
+        <label>Associer à une séance planifiée</label>
+        <select id="dfLink">
+          <option value="">Aucune</option>
+          ${candidates.map(p=>`<option value="${p.id}" ${draft.linkedPlanId===p.id?'selected':''}>${fmtDate(p.date)} — ${esc(p.title||sportLabel(p.sport))}</option>`).join('')}
+        </select>
+      </div>
+    </div>`:''}
+
+    <div class="field">
+      <label>Notes${isMuscu?' (exercices, séries)':''}</label>
+      <textarea id="dfNotes" rows="3" placeholder="${isMuscu?'ex : Squat 4×8, développé couché 4×8…':'Sensations, météo, matériel…'}">${esc(draft.notes||'')}</textarea>
+    </div>
+
+    <button class="btn block" data-act="save-session" style="margin-top:4px;">${isEdit?'Enregistrer les modifications':'Enregistrer la séance'}</button>
+    ${isEdit?`<button class="btn danger block" data-act="del-session" style="margin-top:10px;">Supprimer cette séance</button>`:''}
+  `);
+}
+
+function readDraftInputs(){
+  const g = id => document.getElementById(id);
+  if(g('dfDate')) draft.date = g('dfDate').value || todayISO();
+  if(g('dfDuration')) draft.duration = Number(g('dfDuration').value) || null;
+  if(g('dfDistance')) draft.distance = Number(g('dfDistance').value) || null;
+  if(g('dfNotes')) draft.notes = g('dfNotes').value;
+  if(g('dfIntervals')) draft.intervals = g('dfIntervals').value;
+  if(g('dfLink')) draft.linkedPlanId = g('dfLink').value;
+}
+
+async function saveDraftSession(){
+  readDraftInputs();
+  let session;
+  if(draft.id){
+    session = SESSIONS.find(s=>s.id===draft.id);
+    if(!session) return;
+    if(session.linkedPlanId && session.linkedPlanId!==draft.linkedPlanId){
+      const old = PLAN.find(p=>p.id===session.linkedPlanId);
+      if(old) old.linkedSessionId = null;
+    }
+  } else {
+    session = {id:uid(), source:'manuel'};
+    SESSIONS.push(session);
+  }
+  session.date = draft.date;
+  session.sport = draft.sport;
+  session.duration = draft.duration;
+  session.distance = draft.sport==='muscu' ? null : draft.distance;
+  session.notes = draft.notes || '';
+  session.completion = null;
+  session.linkedPlanId = null;
+  /* champs facultatifs : uniquement s'ils sont renseignés */
+  if(draft.rpe) session.rpe = draft.rpe; else delete session.rpe;
+  if(draft.feel) session.feel = draft.feel; else delete session.feel;
+  if(draft.intervals && draft.intervals.trim()) session.intervals = draft.intervals.trim(); else delete session.intervals;
+
+  if(draft.linkedPlanId){
+    const plan = PLAN.find(p=>p.id===draft.linkedPlanId);
+    if(plan){
+      const metric = SPORTS[session.sport].metric;
+      let pct = null;
+      if(metric==='distance' && plan.targetDistance && session.distance) pct = Math.round(session.distance/plan.targetDistance*100);
+      else if(plan.targetDuration && session.duration) pct = Math.round(session.duration/plan.targetDuration*100);
+      session.completion = pct;
+      session.linkedPlanId = plan.id;
+      plan.linkedSessionId = session.id;
+    }
+  }
+  await saveSessions();
+  await savePlan();
+  closeSheet();
+  renderAll();
+}
+
+async function deleteDraftSession(){
+  if(!draft.id || !confirm('Supprimer cette séance ?')) return;
+  const s = SESSIONS.find(x=>x.id===draft.id);
+  if(s && s.linkedPlanId){ const p = PLAN.find(x=>x.id===s.linkedPlanId); if(p) p.linkedSessionId = null; }
+  SESSIONS = SESSIONS.filter(x=>x.id!==draft.id);
+  await saveSessions();
+  await savePlan();
+  closeSheet();
+  renderAll();
+}
+
+/* ---------- séance planifiée ---------- */
+let planDraftId = null;
+function openPlanSheet(planId){
+  planDraftId = planId || null;
+  const p = planId ? PLAN.find(x=>x.id===planId) : null;
+  openSheet(`
+    <div class="sheet-head">
+      <h2>${p?'Séance planifiée':'Ajouter au programme'}</h2>
+      <button class="sheet-close" data-act="close-sheet">Fermer</button>
+    </div>
+    <div class="field"><label>Date</label><input type="date" id="apDate" value="${p?p.date:todayISO()}"></div>
+    <div class="field"><label>Sport</label>
+      <select id="apSport">${SPORT_KEYS.map(k=>`<option value="${k}" ${p&&p.sport===k?'selected':''}>${sportLabel(k)}</option>`).join('')}</select>
+    </div>
+    <div class="field"><label>Titre</label><input type="text" id="apTitle" value="${p?esc(p.title||''):''}" placeholder="ex : Sortie seuil 45 min"></div>
+    <div class="field"><label>Durée cible (min)</label><input type="number" id="apDuration" value="${p&&p.targetDuration?p.targetDuration:''}"></div>
+    <div class="field"><label>Distance cible (km)</label><input type="number" step="0.1" id="apDistance" value="${p&&p.targetDistance?p.targetDistance:''}"></div>
+    <button class="btn block" data-act="save-plan">${p?'Enregistrer':'Ajouter au programme'}</button>
+    ${p?`<button class="btn sec block" data-act="mark-done" data-id="${p.id}" style="margin-top:10px;">Marquer réalisée</button>
+        <button class="btn danger block" data-act="del-plan" data-id="${p.id}" style="margin-top:10px;">Retirer du programme</button>`:''}
+  `);
+}
+async function savePlanSheet(){
+  const val = id => document.getElementById(id).value;
+  const data = {
+    date: val('apDate')||todayISO(),
+    sport: val('apSport'),
+    title: val('apTitle'),
+    targetDuration: Number(val('apDuration'))||null,
+    targetDistance: Number(val('apDistance'))||null,
+  };
+  if(planDraftId){
+    const p = PLAN.find(x=>x.id===planDraftId);
+    if(p) Object.assign(p, data);
+  } else {
+    PLAN.push({id:uid(), ...data, source:'manuel', linkedSessionId:null});
+  }
+  await savePlan();
+  closeSheet();
+  renderAll();
+}
+
+/* ---------- export CSV ---------- */
+function openExportSheet(){
+  openSheet(`
+    <div class="sheet-head">
+      <h2>Exporter en CSV</h2>
+      <button class="sheet-close" data-act="close-sheet">Fermer</button>
+    </div>
+    <div class="field"><label>Période</label>
+      <select id="expPeriodType">
+        <option value="toutes">Toutes les séances</option>
+        <option value="semaine">Une semaine précise</option>
+        <option value="mois">Un mois précis</option>
+        <option value="annee">Une année précise</option>
+      </select>
+    </div>
+    <div id="expPeriodDetail"></div>
+    <div class="field"><label>Sport</label>
+      <select id="expSport">
+        <option value="tous">Tous les sports</option>
+        ${SPORT_KEYS.map(k=>`<option value="${k}">${sportLabel(k)}</option>`).join('')}
+      </select>
+    </div>
+    <button class="btn block" data-act="do-export">Télécharger le fichier</button>
+    <div class="status" id="exportStatus"></div>
+  `);
+  const pt = document.getElementById('expPeriodType');
+  const detail = document.getElementById('expPeriodDetail');
+  const paint = ()=>{ detail.innerHTML = exportPeriodDetailHTML(pt.value); };
+  pt.onchange = paint; paint();
+}
+function exportPeriodDetailHTML(type){
+  if(type==='semaine') return `<div class="field"><label>Un jour dans la semaine visée</label><input type="date" id="expWeekDate" value="${todayISO()}"></div>`;
+  if(type==='mois') return `<div class="field"><label>Mois</label><input type="month" id="expMonth" value="${todayISO().slice(0,7)}"></div>`;
+  if(type==='annee') return `<div class="field"><label>Année</label><input type="number" id="expYear" value="${new Date().getFullYear()}" min="2000" max="2100"></div>`;
+  return '';
+}
+function csvEscape(val){
+  val = (val===null||val===undefined) ? '' : String(val);
+  if(/[";\n]/.test(val)) return '"'+val.replace(/"/g,'""')+'"';
+  return val;
+}
+function exportSessionsCSV(){
+  const periodType = document.getElementById('expPeriodType').value;
+  const sport = document.getElementById('expSport').value;
+  const status = document.getElementById('exportStatus');
+  let startIso=null, endIso=null, labelPart='toutes';
+
+  if(periodType==='semaine'){
+    const d = document.getElementById('expWeekDate').value || todayISO();
+    const [a,b] = weekRange(d);
+    startIso=a; endIso=b; labelPart='semaine-du-'+a;
+  } else if(periodType==='mois'){
+    const m = document.getElementById('expMonth').value;
+    if(!m){ status.textContent='Choisis un mois.'; return; }
+    const [y,mo] = m.split('-').map(Number);
+    startIso = m+'-01';
+    endIso = `${m}-${String(new Date(y,mo,0).getDate()).padStart(2,'0')}`;
+    labelPart = 'mois-'+m;
+  } else if(periodType==='annee'){
+    const y = document.getElementById('expYear').value;
+    if(!y){ status.textContent="Choisis une année."; return; }
+    startIso = y+'-01-01'; endIso = y+'-12-31'; labelPart='annee-'+y;
+  }
+
+  let rows = SESSIONS.slice();
+  if(startIso && endIso) rows = rows.filter(s=>inRange(s.date, startIso, endIso));
+  if(sport!=='tous') rows = rows.filter(s=>s.sport===sport);
+  rows.sort((a,b)=>a.date.localeCompare(b.date));
+  if(!rows.length){ status.textContent = 'Aucune séance ne correspond à ces critères.'; return; }
+
+  const header = ['Date','Sport','Durée (min)','Durée','Distance (km)','RPE','Ressenti','Fractionné','Réalisation (%)','Source','Notes'];
+  const lines = [header.join(';')].concat(rows.map(s=>[
+    s.date, sportLabel(s.sport), s.duration||'', formatDuration(s.duration)||'',
+    s.distance||'', s.rpe||'', s.feel||'', s.intervals||'',
+    s.completion!=null?s.completion:'', s.source||'manuel', s.notes||''
+  ].map(csvEscape).join(';')));
+
+  const blob = new Blob(['\ufeff'+lines.join('\r\n')], {type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = `carnet-seances-${labelPart}.csv`;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url), 1000);
+  status.textContent = `${rows.length} séance(s) exportée(s).`;
+}
+
+/* ---------- sauvegarde / restauration JSON ---------- */
+async function exportBackup(){
   const backup = {
-    app:'carnet-entrainement', version:1, exportedAt:new Date().toISOString(),
+    app:'carnet-entrainement', version:2, exportedAt:new Date().toISOString(),
     sessions:SESSIONS, plan:PLAN,
     settings:{ goals:SETTINGS.goals||{}, notifications:SETTINGS.notifications||{} },
   };
@@ -254,618 +1339,68 @@ function exportBackup(){
   const a = document.createElement('a');
   a.href = url; a.download = `carnet-entrainement-sauvegarde-${todayISO()}.json`;
   document.body.appendChild(a); a.click(); document.body.removeChild(a);
-  URL.revokeObjectURL(url);
+  setTimeout(()=>URL.revokeObjectURL(url), 1000);
+  SETTINGS.lastBackup = todayISO();
+  await saveSettings();
+  renderAll();
 }
-
 async function importBackup(file, statusEl){
   try{
-    const text = await file.text();
-    const data = JSON.parse(text);
+    const data = JSON.parse(await file.text());
     if(!Array.isArray(data.sessions) || !Array.isArray(data.plan)){
-      statusEl.textContent = 'Fichier invalide : ce n\'est pas une sauvegarde reconnue.';
-      return;
+      statusEl.textContent = "Fichier invalide : ce n'est pas une sauvegarde reconnue."; return;
     }
     const merge = confirm(`Importer ${data.sessions.length} séance(s) et ${data.plan.length} entrée(s) de planning ?\nOK = fusionner avec les données existantes. Annuler = remplacer entièrement.`);
     if(merge){
-      const existingIds = new Set(SESSIONS.map(s=>s.id));
-      data.sessions.forEach(s=>{ if(!existingIds.has(s.id)) SESSIONS.push(s); });
-      const existingPlanIds = new Set(PLAN.map(p=>p.id));
-      data.plan.forEach(p=>{ if(!existingPlanIds.has(p.id)) PLAN.push(p); });
+      const ids = new Set(SESSIONS.map(s=>s.id));
+      data.sessions.forEach(s=>{ if(!ids.has(s.id)) SESSIONS.push(s); });
+      const pids = new Set(PLAN.map(p=>p.id));
+      data.plan.forEach(p=>{ if(!pids.has(p.id)) PLAN.push(p); });
     } else {
-      SESSIONS = data.sessions;
-      PLAN = data.plan;
+      SESSIONS = data.sessions; PLAN = data.plan;
     }
     if(data.settings){
-      SETTINGS.goals = data.settings.goals||SETTINGS.goals;
-      SETTINGS.notifications = data.settings.notifications||SETTINGS.notifications;
+      SETTINGS.goals = data.settings.goals || SETTINGS.goals;
+      SETTINGS.notifications = data.settings.notifications || SETTINGS.notifications;
     }
     await saveSessions(); await savePlan(); await saveSettings();
-    statusEl.textContent = 'Sauvegarde importée avec succès.';
-    if(currentTab) renderView();
+    statusEl.textContent = `Import terminé : ${SESSIONS.length} séance(s), ${PLAN.length} entrée(s) de planning.`;
+    renderAll();
   }catch(e){
-    statusEl.textContent = 'Erreur de lecture du fichier : ' + e.message;
+    statusEl.textContent = 'Lecture impossible : fichier illisible ou corrompu.';
   }
 }
 
-let SESSIONS = [];   // séances réalisées
-let PLAN = [];        // séances planifiées
-let SETTINGS = {};    // réglages (tokens etc.)
-
-const SPORTS = {
-  aviron:   { label:'Aviron',        color:'var(--aviron)', class:'b-aviron', metric:'distance' },
-  velo:     { label:'Vélo',          color:'var(--velo)',   class:'b-velo',   metric:'distance' },
-  course:   { label:'Course à pied', color:'var(--course)', class:'b-course', metric:'distance' },
-  muscu:    { label:'Musculation',   color:'var(--muscu)',  class:'b-muscu',  metric:'duration' },
-};
-
-function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
-/* Formatage de date en LOCAL (jamais toISOString(), qui convertit en UTC et peut décaler d'un jour) */
-function toLocalISO(d){
-  const y=d.getFullYear(), m=String(d.getMonth()+1).padStart(2,'0'), day=String(d.getDate()).padStart(2,'0');
-  return `${y}-${m}-${day}`;
-}
-function todayISO(){ return toLocalISO(new Date()); }
-
-/* Formatage horaire des durées (ex: 90 -> "1h30min", 60 -> "1h", 45 -> "45min") */
-function formatDuration(min){
-  if(min==null || min==='' || isNaN(min)) return null;
-  min = Math.round(Number(min));
-  if(min<=0) return null;
-  const h = Math.floor(min/60);
-  const m = min%60;
-  if(h===0) return `${m}min`;
-  if(m===0) return `${h}h`;
-  return `${h}h${String(m).padStart(2,'0')}min`;
-}
-/* Variante compacte pour les puces étroites (calendrier, bandeau hebdo) : "1h30", "1h", "45m" */
-function formatDurationCompact(min){
-  if(min==null || min==='' || isNaN(min)) return null;
-  min = Math.round(Number(min));
-  if(min<=0) return null;
-  const h = Math.floor(min/60);
-  const m = min%60;
-  if(h===0) return `${m}m`;
-  if(m===0) return `${h}h`;
-  return `${h}h${String(m).padStart(2,'0')}`;
-}
-function fmtDate(d){ const dt=new Date(d+'T00:00:00'); return dt.toLocaleDateString('fr-FR',{day:'2-digit',month:'short'}); }
-function isoWeekKey(dateStr){
-  const d = new Date(dateStr+'T00:00:00');
-  const dt = new Date(d.getTime());
-  dt.setHours(0,0,0,0);
-  dt.setDate(dt.getDate() + 3 - ((dt.getDay()+6)%7));
-  const week1 = new Date(dt.getFullYear(),0,4);
-  const wk = 1 + Math.round(((dt-week1)/86400000 - 3 + ((week1.getDay()+6)%7))/7);
-  return dt.getFullYear()+'-W'+String(wk).padStart(2,'0');
-}
-function monthKey(dateStr){ return dateStr.slice(0,7); }
-function yearKey(dateStr){ return dateStr.slice(0,4); }
-function startOfWeek(dateStr){
-  const d = new Date(dateStr+'T00:00:00');
-  const day = (d.getDay()+6)%7;
-  d.setDate(d.getDate()-day);
-  return d;
-}
-
-/* ============ TABS ============ */
-const TABS = [
-  {id:'dashboard', label:'Accueil'},
-  {id:'calendar', label:'Calendrier'},
-  {id:'planning', label:'Planning'},
-  {id:'seances', label:'Séances'},
-  {id:'parametres', label:'Paramètres'},
-];
-let currentTab = 'dashboard';
-
-function renderTabs(){
-  const nav = document.getElementById('tabs');
-  nav.innerHTML = TABS.map(t=>`<button data-tab="${t.id}" class="${t.id===currentTab?'active':''}">${t.label}</button>`).join('');
-  nav.querySelectorAll('button').forEach(b=>{
-    b.onclick = ()=>{ currentTab = b.dataset.tab; renderTabs(); renderView(); };
-  });
-}
-
-function renderView(){
-  const v = document.getElementById('view');
-  if(currentTab==='dashboard') v.innerHTML = viewDashboard();
-  if(currentTab==='calendar') v.innerHTML = viewCalendar();
-  if(currentTab==='planning') v.innerHTML = viewPlanning();
-  if(currentTab==='seances') v.innerHTML = viewSeances();
-  if(currentTab==='parametres') v.innerHTML = viewParametres();
-  attachHandlers();
-}
-
-/* ============ DASHBOARD ============ */
-let dashPeriod = 'semaine';
-
-function filterByPeriod(list, period){
-  const now = new Date();
-  return list.filter(s=>{
-    if(period==='semaine') return isoWeekKey(s.date)===isoWeekKey(todayISO());
-    if(period==='mois') return monthKey(s.date)===monthKey(todayISO());
-    if(period==='annee') return yearKey(s.date)===yearKey(todayISO());
-    return true;
-  });
-}
-
-function viewDashboard(){
-  const inPeriod = filterByPeriod(SESSIONS, dashPeriod);
-
-  const totalDuration = inPeriod.reduce((a,s)=>a+(Number(s.duration)||0),0);
-  const linked = inPeriod.filter(s=>s.completion!=null);
-  const avgCompletion = linked.length ? Math.round(linked.reduce((a,s)=>a+s.completion,0)/linked.length) : null;
-
-  // totaux par catégorie — calculés sur la période sélectionnée, indépendamment de tout filtre
-  const bySport = {};
-  Object.keys(SPORTS).forEach(k=>bySport[k]={count:0, duration:0, distance:0, completions:[]});
-  inPeriod.forEach(s=>{
-    const b = bySport[s.sport];
-    if(!b) return;
-    b.count++;
-    b.duration += Number(s.duration)||0;
-    b.distance += Number(s.distance)||0;
-    if(s.completion!=null) b.completions.push(s.completion);
-  });
-
-  // bandeau hebdo : lundi -> dimanche de la semaine en cours
-  const monday = startOfWeek(todayISO());
-  const weekDayLabels = ['LUN','MAR','MER','JEU','VEN','SAM','DIM'];
-  const days = [];
-  for(let i=0;i<7;i++){
-    const d = new Date(monday); d.setDate(monday.getDate()+i);
-    const iso = toLocalISO(d);
-    const dayS = SESSIONS.filter(s=>s.date===iso);
-    const dayP = PLAN.filter(p=>p.date===iso && !p.linkedSessionId);
-    const dur = dayS.reduce((a,s)=>a+(Number(s.duration)||0),0);
-    days.push({iso, dayLabel:weekDayLabels[i], num:d.getDate(), dur, sessions:dayS, plans:dayP});
-  }
-
-  const upcoming = PLAN.filter(p=>!p.linkedSessionId && p.date>=todayISO()).sort((a,b)=>a.date.localeCompare(b.date)).slice(0,5);
-
-  return `
-  <div class="card">
-    <h3>Bilan de la semaine</h3>
-    <div class="week-strip">
-      ${days.map(d=>{
-        const chips = d.sessions.map(s=>`<div class="week-chip" style="background:${getComputedColor(s.sport)}" title="${SPORTS[s.sport].label}">${formatDurationCompact(s.duration)||SPORTS[s.sport].label.slice(0,3)}</div>`).join('');
-        const plannedChips = d.plans.map(p=>`<div class="week-chip planned" style="color:${getComputedColor(p.sport)}" title="${SPORTS[p.sport].label} prévue">${SPORTS[p.sport].label.slice(0,3)}</div>`).join('');
-        return `<div class="week-cell ${d.iso===todayISO()?'today':''}" data-cal-day="${d.iso}">
-          <div class="wc-day">${d.dayLabel}</div>
-          <div class="wc-num">${d.num}</div>
-          <div class="wc-chips">${chips}${plannedChips}${(!chips && !plannedChips)?'<div class="hint" style="margin:0;text-align:center;">—</div>':''}</div>
-          <div class="wc-total">${formatDurationCompact(d.dur)||''}</div>
-        </div>`;
-      }).join('')}
-    </div>
-  </div>
-
-  ${(()=>{
-    const goals = SETTINGS.goals || {};
-    const goalKeys = Object.keys(goals).filter(k=>goals[k]?.sessions>0);
-    if(!goalKeys.length) return '';
-    const monday2 = startOfWeek(todayISO());
-    const sunday2 = new Date(monday2); sunday2.setDate(monday2.getDate()+6);
-    const weekS = SESSIONS.filter(s=>s.date>=toLocalISO(monday2) && s.date<=toLocalISO(sunday2));
-    return `<div class="card">
-      <h3>Objectifs de la semaine</h3>
-      ${goalKeys.map(k=>{
-        const target = goals[k].sessions;
-        const done = weekS.filter(s=>s.sport===k).length;
-        const pct = Math.min(100, Math.round(done/target*100));
-        return `<div class="goal-row">
-          <span class="badge ${SPORTS[k].class} goal-label" style="justify-content:center;">${SPORTS[k].label}</span>
-          <div class="goal-bar-wrap"><div class="goal-bar-fill" style="width:${pct}%;background:${getComputedColor(k)}"></div></div>
-          <span class="goal-num">${done}/${target}</span>
-        </div>`;
-      }).join('')}
-    </div>`;
-  })()}
-
-  <div class="row" style="margin-bottom:10px;">
-    <select id="dashPeriod" style="width:auto;">
-      <option value="semaine" ${dashPeriod==='semaine'?'selected':''}>Cette semaine</option>
-      <option value="mois" ${dashPeriod==='mois'?'selected':''}>Ce mois</option>
-      <option value="annee" ${dashPeriod==='annee'?'selected':''}>Cette année</option>
-    </select>
-  </div>
-
-  <div class="grid3">
-    <div class="card"><div class="stat"><div class="num">${inPeriod.length}</div><div class="lbl">Séances</div></div></div>
-    <div class="card"><div class="stat"><div class="num">${formatDuration(totalDuration)||'0min'}</div><div class="lbl">Durée totale</div></div></div>
-    <div class="card"><div class="stat"><div class="num">${avgCompletion!=null?avgCompletion+'%':'—'}</div><div class="lbl">Réalisation planning</div></div></div>
-  </div>
-
-  <div class="card">
-    <h3>Totaux par catégorie</h3>
-    <div class="table-scroll"><table>
-      <thead><tr><th>Sport</th><th>Séances</th><th>Durée</th><th>Distance</th><th>Réal.</th></tr></thead>
-      <tbody>
-      ${Object.entries(SPORTS).map(([k,v])=>{
-        const b = bySport[k];
-        const avgC = b.completions.length ? Math.round(b.completions.reduce((a,c)=>a+c,0)/b.completions.length) : null;
-        return `<tr>
-          <td><span class="badge ${v.class}">${v.label}</span></td>
-          <td class="mono">${b.count}</td>
-          <td class="mono">${formatDuration(b.duration)||'—'}</td>
-          <td class="mono">${b.distance?Math.round(b.distance*10)/10+' km':'—'}</td>
-          <td class="mono">${avgC!=null?avgC+'%':'—'}</td>
-        </tr>`;
-      }).join('')}
-      </tbody>
-    </table></div>
-  </div>
-
-  <div class="card">
-    <h3>Répartition des heures par sport</h3>
-    <canvas id="chartSport" height="140"></canvas>
-  </div>
-
-  <div class="card">
-    <h3>Progression — 8 dernières semaines</h3>
-    <canvas id="chartProgress" height="140"></canvas>
-  </div>
-
-  <div class="card">
-    <h3>Séances planifiées à venir</h3>
-    ${upcoming.length? `<div class="table-scroll"><table><tbody>
-      ${upcoming.map(p=>`<tr>
-        <td class="mono">${fmtDate(p.date)}</td>
-        <td><span class="badge ${SPORTS[p.sport].class}">${SPORTS[p.sport].label}</span></td>
-        <td>${p.title||''}</td>
-      </tr>`).join('')}
-    </tbody></table></div>` : `<div class="empty">Aucune séance planifiée à venir. Importe ton programme dans l'onglet « Paramètres ».</div>`}
-  </div>
-  `;
-}
-
-function initDashboardChart(){
-  const canvas = document.getElementById('chartSport');
-  if(!canvas || typeof Chart==='undefined') return;
-  const inPeriod = filterByPeriod(SESSIONS, dashPeriod);
-  const bySport = {};
-  Object.keys(SPORTS).forEach(k=>bySport[k]=0);
-  inPeriod.forEach(s=>{ bySport[s.sport] = (bySport[s.sport]||0) + (Number(s.duration)||0); });
-  if(window._chartInstance) window._chartInstance.destroy();
-  window._chartInstance = new Chart(canvas, {
-    type:'bar',
-    data:{
-      labels:Object.values(SPORTS).map(s=>s.label),
-      datasets:[{
-        data:Object.keys(SPORTS).map(k=>Math.round(bySport[k]/60*10)/10),
-        backgroundColor:['#0E6E82','#A8600A','#B23A2E','#5B4A9E'],
-        borderRadius:6,
-      }]
-    },
-    options:{
-      plugins:{legend:{display:false}},
-      scales:{
-        y:{ticks:{color:'#5B5A54',font:{size:13}},grid:{color:'#D8D3C6'},title:{display:true,text:'heures',color:'#5B5A54'}},
-        x:{ticks:{color:'#1B1B18',font:{size:13,weight:'600'}},grid:{display:false}}
-      }
-    }
-  });
-}
-
-function initProgressChart(){
-  const canvas = document.getElementById('chartProgress');
-  if(!canvas || typeof Chart==='undefined') return;
-  const monday = startOfWeek(todayISO());
-  const weeks = [];
-  for(let i=7;i>=0;i--){
-    const wkStart = new Date(monday); wkStart.setDate(monday.getDate()-7*i);
-    const wkEnd = new Date(wkStart); wkEnd.setDate(wkStart.getDate()+6);
-    const startIso = toLocalISO(wkStart), endIso = toLocalISO(wkEnd);
-    const total = SESSIONS.filter(s=>s.date>=startIso && s.date<=endIso).reduce((a,s)=>a+(Number(s.duration)||0),0);
-    weeks.push({label: wkStart.toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit'}), total: Math.round(total/60*10)/10});
-  }
-  if(window._progressChart) window._progressChart.destroy();
-  window._progressChart = new Chart(canvas, {
-    type:'line',
-    data:{
-      labels: weeks.map(w=>w.label),
-      datasets:[{
-        data: weeks.map(w=>w.total),
-        borderColor:'#14140F', backgroundColor:'rgba(20,20,15,.08)',
-        fill:true, tension:.3, pointRadius:3, pointBackgroundColor:'#14140F',
-      }]
-    },
-    options:{
-      plugins:{legend:{display:false}},
-      scales:{
-        y:{ticks:{color:'#5B5A54',font:{size:12}},grid:{color:'#D8D3C6'},title:{display:true,text:'heures/semaine',color:'#5B5A54'},beginAtZero:true},
-        x:{ticks:{color:'#1B1B18',font:{size:11}},grid:{display:false}}
-      }
-    }
-  });
-}
-
-/* ============ CALENDRIER MENSUEL ============ */
-let calDate = new Date();       // mois affiché
-let calSelected = null;         // date ISO sélectionnée
-
-function viewCalendar(){
-  const year = calDate.getFullYear();
-  const month = calDate.getMonth();
-  const firstOfMonth = new Date(year, month, 1);
-  const startOffset = (firstOfMonth.getDay()+6)%7; // lundi=0
-  const daysInMonth = new Date(year, month+1, 0).getDate();
-  const gridStart = new Date(year, month, 1-startOffset);
-
-  const cells = [];
-  for(let i=0;i<42;i++){
-    const d = new Date(gridStart); d.setDate(gridStart.getDate()+i);
-    cells.push(d);
-  }
-
-  const monthLabel = firstOfMonth.toLocaleDateString('fr-FR',{month:'long',year:'numeric'});
-  const todayIso = todayISO();
-
-  const cellsHTML = cells.map(d=>{
-    const iso = toLocalISO(d);
-    const inMonth = d.getMonth()===month;
-    const daySessions = SESSIONS.filter(s=>s.date===iso);
-    const dayPlansUnlinked = PLAN.filter(p=>p.date===iso && !p.linkedSessionId);
-    const items = [
-      ...daySessions.map(s=>({sport:s.sport, label:formatDurationCompact(s.duration)||SPORTS[s.sport].label.slice(0,3), done:true})),
-      ...dayPlansUnlinked.map(p=>({sport:p.sport, label:SPORTS[p.sport].label.slice(0,3), done:false})),
-    ];
-    const shown = items.slice(0,2);
-    const extra = items.length - shown.length;
-    const chipsHTML = shown.map(it=>{
-      const color = getComputedColor(it.sport);
-      return it.done
-        ? `<div class="cal-chip" style="background:${color}">${it.label}</div>`
-        : `<div class="cal-chip planned" style="color:${color}">${it.label}</div>`;
-    }).join('') + (extra>0?`<div class="cal-more">+${extra}</div>`:'');
-    return `<div class="cal-cell ${inMonth?'':'out'} ${iso===todayIso?'today':''} ${iso===calSelected?'selected':''}" data-cal-day="${iso}">
-      <div class="cal-daynum">${d.getDate()}</div>
-      <div class="cal-chiplist">${chipsHTML}</div>
-    </div>`;
-  }).join('');
-
-  const selDate = calSelected || todayIso;
-  const selSessions = SESSIONS.filter(s=>s.date===selDate);
-  const selPlans = PLAN.filter(p=>p.date===selDate);
-
-  return `
-  <div class="card">
-    <div class="cal-nav">
-      <button data-cal-nav="-1">‹</button>
-      <div class="cal-title">${monthLabel}</div>
-      <button data-cal-nav="1">›</button>
-    </div>
-    <div class="cal-weekdays"><div>L</div><div>M</div><div>M</div><div>J</div><div>V</div><div>S</div><div>D</div></div>
-    <div class="cal-grid">${cellsHTML}</div>
-    <div class="cal-legend">
-      ${Object.entries(SPORTS).map(([k,v])=>`<span><span class="sw" style="background:${v.color}"></span>${v.label}</span>`).join('')}
-    </div>
-    <div class="cal-legend" style="margin-top:6px;">
-      <span><span class="cal-chip" style="background:var(--text-dim);padding:2px 6px;">1h30</span>réalisée (durée)</span>
-      <span><span class="cal-chip planned" style="color:var(--text-dim);padding:2px 6px;">Rép&nbsp;</span>prévue, pas encore faite</span>
-    </div>
-
-    <div class="cal-daylist">
-      <h3 style="margin-bottom:8px;">${fmtDate(selDate)}</h3>
-      ${(selSessions.length===0 && selPlans.length===0) ? `<div class="empty">Rien ce jour-là.</div>` : ''}
-      ${selPlans.map(p=>`<div class="cal-daylist-item">
-        <span class="badge ${SPORTS[p.sport].class}">${SPORTS[p.sport].label}</span>
-        <div style="flex:1;">
-          <div>${p.title||'Séance planifiée'}</div>
-          <div class="hint" style="margin:0;">${p.targetDuration?formatDuration(p.targetDuration):''}${p.targetDistance?' · '+p.targetDistance+' km':''} — ${p.linkedSessionId?'réalisée':'à faire'}</div>
-        </div>
-        ${!p.linkedSessionId?`<button class="mark-done-btn" data-mark-done="${p.id}">Marquer réalisée</button>`:''}
-      </div>`).join('')}
-      ${selSessions.map(s=>`<div class="cal-daylist-item">
-        <span class="badge ${SPORTS[s.sport].class}">${SPORTS[s.sport].label}</span>
-        <div style="flex:1;">
-          <div>${s.notes||'Séance réalisée'}</div>
-          <div class="hint" style="margin:0;">${s.duration?formatDuration(s.duration):''}${s.distance?' · '+s.distance+' km':''}${s.completion!=null?' · '+s.completion+'% du planning':''}</div>
-        </div>
-        <button class="icon-btn" data-edit-session="${s.id}" title="Modifier">✎</button>
-      </div>`).join('')}
-      <button class="btn secondary" id="btnCalAdd" style="margin-top:12px;width:100%;">+ Ajouter une séance ce jour</button>
-    </div>
-  </div>`;
-}
-
-function getComputedColor(sport){
-  const map = {aviron:'#0E6E82', velo:'#A8600A', course:'#B23A2E', muscu:'#5B4A9E'};
-  return map[sport] || '#5B5A54';
-}
-
-/* ============ SEANCES (réalisées) ============ */
-function viewSeances(){
-  const sorted = SESSIONS.slice().sort((a,b)=>b.date.localeCompare(a.date));
-  return `
-  <div class="card">
-    <h3>Séances réalisées (${SESSIONS.length})</h3>
-    ${sorted.length? `<div class="table-scroll wide"><table>
-      <thead><tr><th>Date</th><th>Sport</th><th>Durée</th><th>Distance</th><th>Réal.</th><th>Source</th><th></th><th></th></tr></thead>
-      <tbody>
-      ${sorted.map(s=>`<tr>
-        <td class="mono">${fmtDate(s.date)}</td>
-        <td><span class="badge ${SPORTS[s.sport].class}">${SPORTS[s.sport].label}</span></td>
-        <td class="mono">${formatDuration(s.duration)||'—'}</td>
-        <td class="mono">${s.distance?s.distance+' km':'—'}</td>
-        <td class="mono">${s.completion!=null?s.completion+'%':'—'}</td>
-        <td>${s.source||'manuel'}</td>
-        <td><button class="icon-btn" data-edit-session="${s.id}" title="Modifier">✎</button></td>
-        <td><button class="icon-btn" data-del-session="${s.id}" title="Supprimer">✕</button></td>
-      </tr>`).join('')}
-      </tbody>
-    </table></div>` : `<div class="empty">Aucune séance enregistrée. Appuie sur le bouton + pour en ajouter une.</div>`}
-  </div>`;
-}
-
-/* ============ PLANNING ============ */
-function viewPlanning(){
-  const sorted = PLAN.slice().sort((a,b)=>a.date.localeCompare(b.date));
-  return `
-  <div class="card">
-    <div class="row" style="justify-content:space-between;align-items:center;margin-bottom:10px;">
-      <h3 style="margin:0;">Programme planifié (${PLAN.length})</h3>
-      <button class="btn secondary" id="btnAddPlan">+ Ajouter manuellement</button>
-    </div>
-    ${sorted.length? `<div class="table-scroll wide"><table>
-      <thead><tr><th>Date</th><th>Sport</th><th>Titre</th><th>Cible</th><th>Statut</th><th></th></tr></thead>
-      <tbody>
-      ${sorted.map(p=>`<tr>
-        <td class="mono">${fmtDate(p.date)}</td>
-        <td><span class="badge ${SPORTS[p.sport].class}">${SPORTS[p.sport].label}</span></td>
-        <td>${p.title||'—'}</td>
-        <td class="mono">${p.targetDuration?formatDuration(p.targetDuration):''}${p.targetDistance?' / '+p.targetDistance+' km':''}</td>
-        <td>${p.linkedSessionId? '<span class="hint" style="color:var(--aviron)">✓ réalisée</span>' : `<button class="mark-done-btn" data-mark-done="${p.id}">Marquer réalisée</button>`}</td>
-        <td><button class="icon-btn" data-del-plan="${p.id}" title="Supprimer">✕</button></td>
-      </tr>`).join('')}
-      </tbody>
-    </table></div>` : `<div class="empty">Aucune séance planifiée. Importe ton programme (Excel/PDF) ou ajoute une séance manuellement.</div>`}
-  </div>`;
-}
-
-/* ============ PARAMÈTRES (Compte + Import + Connexions) ============ */
-let paramSubtab = 'compte';
-
-function viewParametres(){
-  return `
-  <div class="subtabs">
-    <button data-psub="compte" class="${paramSubtab==='compte'?'active':''}">Compte</button>
-    <button data-psub="objectifs" class="${paramSubtab==='objectifs'?'active':''}">Objectifs</button>
-    <button data-psub="import" class="${paramSubtab==='import'?'active':''}">Import programme</button>
-    <button data-psub="connexions" class="${paramSubtab==='connexions'?'active':''}">Connexions</button>
-  </div>
-  ${paramSubtab==='compte' ? viewCompte() : ''}
-  ${paramSubtab==='objectifs' ? viewObjectifs() : ''}
-  ${paramSubtab==='import' ? viewImport() : ''}
-  ${paramSubtab==='connexions' ? viewConnexions() : ''}
-  `;
-}
-
-function viewCompte(){
-  const auth = SETTINGS.auth || {};
-  const notif = SETTINGS.notifications || {};
-  return `
-  <div class="card">
-    <h3>Accès à l'application</h3>
-    <p class="hint">Compte associé : <b>${auth.email||'—'}</b></p>
-    <button class="btn secondary" id="btnLockApp">Verrouiller l'application</button>
-  </div>
-  <div class="card">
-    <h3>Changer le mot de passe</h3>
-    <div class="field"><label>Mot de passe actuel</label><input type="password" id="pwCurrent"></div>
-    <div class="field"><label>Nouveau mot de passe</label><input type="password" id="pwNew"></div>
-    <div class="field"><label>Confirmer le nouveau mot de passe</label><input type="password" id="pwNew2"></div>
-    <button class="btn" id="btnChangePw">Mettre à jour le mot de passe</button>
-    <div id="pwStatus" class="hint"></div>
-  </div>
-  <div class="card">
-    <h3>Question de récupération</h3>
-    <p class="hint">Si tu oublies ton mot de passe, cette question permet d'en créer un nouveau sans effacer tes données.</p>
-    <div class="field"><label>Question secrète</label><input type="text" id="secQuestion" value="${(auth.secretQuestion||'').replace(/"/g,'&quot;')}" placeholder="ex: Le nom de mon premier club ?"></div>
-    <div class="field"><label>Réponse</label><input type="text" id="secAnswer" placeholder="Laisse vide pour ne pas changer"></div>
-    <button class="btn secondary" id="btnSaveSecret">Enregistrer la question secrète</button>
-    <div id="secStatus" class="hint"></div>
-  </div>
-  <div class="card">
-    <h3>Rappels de séance</h3>
-    <p class="hint">Quand l'appli est ouverte, un rappel s'affiche si une séance du planning est prévue aujourd'hui et pas encore marquée réalisée. Ceci ne fonctionne que pendant que l'appli est ouverte à l'écran — un vrai rappel en arrière-plan (appli fermée) demanderait un serveur de notification push, non inclus ici.</p>
-    <label class="toggle-row"><span>Activer les rappels</span><input type="checkbox" id="notifToggle" ${notif.enabled?'checked':''}></label>
-    <div id="notifStatus" class="hint"></div>
-  </div>
-  <div class="card">
-    <h3>Sauvegarde et restauration</h3>
-    <p class="hint">Les données sont stockées uniquement dans ce navigateur. Exporte régulièrement une sauvegarde, notamment avant de changer d'appareil ou de vider le cache.</p>
-    <button class="btn secondary" id="btnExportBackup" style="margin-bottom:10px;">Exporter mes données (JSON)</button>
-    <div class="field"><label>Importer une sauvegarde</label><input type="file" id="fileBackup" accept=".json"></div>
-    <div id="backupStatus" class="hint"></div>
-  </div>`;
-}
-
-/* ============ OBJECTIFS ============ */
-function viewObjectifs(){
-  const goals = SETTINGS.goals || {};
-  const monday = startOfWeek(todayISO());
-  const sunday = new Date(monday); sunday.setDate(monday.getDate()+6);
-  const weekSessions = SESSIONS.filter(s=> s.date>=toLocalISO(monday) && s.date<=toLocalISO(sunday));
-
-  return `
-  <div class="card">
-    <h3>Objectifs hebdomadaires</h3>
-    <p class="hint">Fixe un nombre de séances visées par semaine pour chaque sport. La progression sur l'accueil se calcule sur la semaine en cours (lundi → dimanche).</p>
-    ${Object.entries(SPORTS).map(([k,v])=>`
-      <div class="field" style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
-        <span class="badge ${v.class}" style="width:110px;justify-content:center;">${v.label}</span>
-        <input type="number" min="0" id="goal-${k}" value="${goals[k]?.sessions||''}" placeholder="0" style="width:80px;">
-        <span class="hint" style="margin:0;">séance(s) / semaine</span>
-      </div>`).join('')}
-    <button class="btn" id="btnSaveGoals">Enregistrer les objectifs</button>
-    <div id="goalsStatus" class="hint"></div>
-  </div>
-  <div class="card">
-    <h3>Cette semaine</h3>
-    ${Object.entries(SPORTS).map(([k,v])=>{
-      const target = goals[k]?.sessions || 0;
-      const done = weekSessions.filter(s=>s.sport===k).length;
-      const pct = target>0 ? Math.min(100, Math.round(done/target*100)) : (done>0?100:0);
-      return `<div class="goal-row">
-        <span class="badge ${v.class} goal-label" style="justify-content:center;">${v.label}</span>
-        <div class="goal-bar-wrap"><div class="goal-bar-fill" style="width:${pct}%;background:${getComputedColor(k)}"></div></div>
-        <span class="goal-num">${done}/${target||'—'}</span>
-      </div>`;
-    }).join('')}
-  </div>`;
-}
-
-/* ============ IMPORT ============ */
-function viewImport(){
-  return `
-  <div class="card">
-    <h3>Importer un programme — Excel</h3>
-    <p class="hint">Colonnes attendues (l'ordre n'importe pas, en-têtes en français) : <b>Date</b> (jj/mm/aaaa), <b>Sport</b> (aviron / vélo / course / musculation), <b>Titre</b>, <b>Durée</b> (min), <b>Distance</b> (km, optionnel).</p>
-    <input type="file" id="fileExcel" accept=".xlsx,.xls,.csv">
-    <div id="excelStatus" class="hint"></div>
-  </div>
-  <div class="card">
-    <h3>Importer un programme — PDF</h3>
-    <p class="hint">L'extraction depuis un PDF est moins fiable qu'un Excel (mise en page libre). Le texte est extrait puis affiché ci-dessous pour vérification / correction avant import définitif.</p>
-    <input type="file" id="filePdf" accept=".pdf">
-    <div id="pdfArea" style="margin-top:10px;"></div>
-  </div>`;
-}
-
+/* ============================================================
+   IMPORTS DE PROGRAMME
+   ============================================================ */
 async function handleExcelFile(file){
   const status = document.getElementById('excelStatus');
   status.textContent = 'Lecture du fichier…';
-  const buf = await file.arrayBuffer();
-  const wb = XLSX.read(buf, {type:'array'});
-  const sheet = wb.Sheets[wb.SheetNames[0]];
-  const rows = XLSX.utils.sheet_to_json(sheet, {defval:''});
-  if(!rows.length){ status.textContent = 'Fichier vide ou illisible.'; return; }
-  let added = 0;
-  rows.forEach(r=>{
-    const keys = Object.keys(r).reduce((acc,k)=>{acc[k.toLowerCase().trim()]=r[k];return acc;},{});
-    const rawDate = keys['date'];
-    const dateISO = parseFrenchDate(rawDate);
-    if(!dateISO) return;
-    const sportRaw = (keys['sport']||'').toString().toLowerCase();
-    const sport = matchSport(sportRaw);
-    if(!sport) return;
-    PLAN.push({
-      id: uid(),
-      date: dateISO,
-      sport,
-      title: keys['titre']||keys['description']||'',
-      targetDuration: Number(keys['durée']||keys['duree']||0)||null,
-      targetDistance: Number(keys['distance']||0)||null,
-      source:'excel',
-      linkedSessionId:null,
+  try{
+    const wb = XLSX.read(await file.arrayBuffer(), {type:'array'});
+    const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {defval:''});
+    if(!rows.length){ status.textContent = 'Fichier vide ou illisible.'; return; }
+    let added = 0;
+    rows.forEach(r=>{
+      const keys = Object.keys(r).reduce((acc,k)=>{acc[k.toLowerCase().trim()]=r[k];return acc;},{});
+      const dateISO = parseFrenchDate(keys['date']);
+      const sport = matchSport((keys['sport']||'').toString());
+      if(!dateISO || !sport) return;
+      PLAN.push({
+        id:uid(), date:dateISO, sport,
+        title: keys['titre']||keys['description']||'',
+        targetDuration: Number(keys['durée']||keys['duree']||0)||null,
+        targetDistance: Number(keys['distance']||0)||null,
+        source:'excel', linkedSessionId:null,
+      });
+      added++;
     });
-    added++;
-  });
-  await savePlan();
-  status.textContent = `${added} séance(s) importée(s) et ajoutée(s) au planning.`;
-  if(currentTab==='planning') renderView();
+    await savePlan();
+    status.textContent = `${added} séance(s) ajoutée(s) au programme.`;
+    renderAll();
+  }catch(e){ status.textContent = 'Lecture impossible : format non reconnu.'; }
 }
-
 function parseFrenchDate(v){
   if(!v) return null;
   if(v instanceof Date) return toLocalISO(v);
@@ -875,47 +1410,38 @@ function parseFrenchDate(v){
   m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
   if(m){ let [_,y,mo,d]=m; return `${y}-${mo.padStart(2,'0')}-${d.padStart(2,'0')}`; }
   const dt = new Date(s);
-  if(!isNaN(dt)) return toLocalISO(dt);
-  return null;
+  return isNaN(dt) ? null : toLocalISO(dt);
 }
 function matchSport(raw){
-  raw = raw.toLowerCase();
-  if(raw.includes('aviron')||raw.includes('rame')||raw.includes('ergo')) return 'aviron';
-  if(raw.includes('vélo')||raw.includes('velo')||raw.includes('bike')||raw.includes('cycl')) return 'velo';
+  raw = (raw||'').toLowerCase();
+  if(raw.includes('aviron')||raw.includes('rame')||raw.includes('ergo')||raw.includes('row')) return 'aviron';
+  if(raw.includes('vélo')||raw.includes('velo')||raw.includes('bike')||raw.includes('cycl')||raw.includes('ride')) return 'velo';
   if(raw.includes('course')||raw.includes('run')||raw.includes('cap')) return 'course';
-  if(raw.includes('muscu')||raw.includes('force')||raw.includes('renfo')) return 'muscu';
+  if(raw.includes('muscu')||raw.includes('force')||raw.includes('renfo')||raw.includes('strength')||raw.includes('weight')) return 'muscu';
   return null;
 }
-
 async function handlePdfFile(file){
   const area = document.getElementById('pdfArea');
   area.innerHTML = '<div class="hint">Extraction du texte…</div>';
-  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-  const buf = await file.arrayBuffer();
-  const pdf = await pdfjsLib.getDocument({data:buf}).promise;
-  let fullText = '';
-  for(let i=1;i<=pdf.numPages;i++){
-    const page = await pdf.getPage(i);
-    const content = await page.getTextContent();
-    fullText += content.items.map(it=>it.str).join(' ') + '\n';
-  }
-  // heuristique: découpe en lignes, cherche motifs date
-  const lines = fullText.split(/\n|(?=\d{1,2}\/\d{1,2})/).map(l=>l.trim()).filter(Boolean);
-  area.innerHTML = `
-    <p class="hint">Texte extrait — corrige si besoin puis valide ligne par ligne. Format suggéré par ligne : <span class="mono">jj/mm/aaaa | sport | titre | durée(min) | distance(km)</span></p>
-    <textarea id="pdfTextArea" rows="10" style="font-family:'JetBrains Mono',monospace;font-size:12px;">${lines.slice(0,60).join('\n')}</textarea>
-    <div class="row" style="margin-top:10px;">
-      <button class="btn" id="btnImportPdfLines">Analyser et importer</button>
-    </div>
-    <div id="pdfImportStatus" class="hint"></div>
-  `;
-  document.getElementById('btnImportPdfLines').onclick = ()=>importPdfLines();
+  try{
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    const pdf = await pdfjsLib.getDocument({data: await file.arrayBuffer()}).promise;
+    let full = '';
+    for(let i=1;i<=pdf.numPages;i++){
+      const content = await (await pdf.getPage(i)).getTextContent();
+      full += content.items.map(it=>it.str).join(' ') + '\n';
+    }
+    const lines = full.split(/\n|(?=\d{1,2}\/\d{1,2})/).map(l=>l.trim()).filter(Boolean);
+    area.innerHTML = `
+      <div class="hint" style="margin-bottom:10px;">Texte extrait — corrige si besoin, une ligne par séance : <span class="mono">jj/mm/aaaa | sport | titre | durée(min) | distance(km)</span></div>
+      <textarea id="pdfTextArea" rows="10" style="font-family:'JetBrains Mono',monospace;font-size:12px;">${esc(lines.slice(0,60).join('\n'))}</textarea>
+      <button class="btn block" data-act="import-pdf" style="margin-top:10px;">Analyser et importer</button>
+      <div class="status" id="pdfImportStatus"></div>`;
+  }catch(e){ area.innerHTML = '<div class="hint">Lecture du PDF impossible.</div>'; }
 }
-
 async function importPdfLines(){
-  const ta = document.getElementById('pdfTextArea');
+  const lines = document.getElementById('pdfTextArea').value.split('\n').map(l=>l.trim()).filter(Boolean);
   const status = document.getElementById('pdfImportStatus');
-  const lines = ta.value.split('\n').map(l=>l.trim()).filter(Boolean);
   let added = 0;
   lines.forEach(line=>{
     const parts = line.split('|').map(p=>p.trim());
@@ -928,7 +1454,7 @@ async function importPdfLines(){
       distance = Number(parts[4])||null;
     } else {
       const dm = line.match(/(\d{1,2}\/\d{1,2}\/\d{2,4}|\d{1,2}\/\d{1,2})/);
-      dateISO = dm ? parseFrenchDate(dm[1].split('/').length===2? dm[1]+'/'+new Date().getFullYear() : dm[1]) : null;
+      dateISO = dm ? parseFrenchDate(dm[1].split('/').length===2 ? dm[1]+'/'+new Date().getFullYear() : dm[1]) : null;
       sport = matchSport(line);
       title = line;
     }
@@ -938,60 +1464,13 @@ async function importPdfLines(){
     }
   });
   await savePlan();
-  status.textContent = `${added} ligne(s) importée(s) sur ${lines.length}. Vérifie le résultat dans l'onglet Planning.`;
+  status.textContent = `${added} ligne(s) importée(s) sur ${lines.length}. Vérifie le résultat dans l'onglet Programme.`;
+  renderAll();
 }
 
-/* ============ CONNEXIONS ============ */
-function viewConnexions(){
-  const strava = SETTINGS.strava || {};
-  return `
-  <div class="card">
-    <h3>Strava — via relais (recommandé)</h3>
-    <p class="hint">
-      La connexion directe depuis un navigateur échoue à l'étape d'échange de jeton (Strava n'active pas les en-têtes
-      CORS nécessaires sur <span class="mono">/oauth/token</span> — c'est documenté et confirmé par Strava eux-mêmes,
-      pas un défaut de cette appli). La solution fiable est un petit relais côté serveur qui garde ton Client Secret
-      en sécurité et fait l'échange à ta place. Un modèle prêt à l'emploi pour Cloudflare Workers (gratuit) est fourni
-      dans le dossier <span class="mono">worker/</span> de ce dépôt — voir le README pour la mise en place (~15 minutes).
-    </p>
-    <div class="field">
-      <label>URL du relais</label>
-      <input type="text" id="stravaWorkerUrl" value="${strava.workerUrl||''}" placeholder="https://ton-relais.workers.dev">
-    </div>
-    <div class="field">
-      <label>Client ID Strava</label>
-      <input type="text" id="stravaClientId" value="${strava.clientId||''}" placeholder="ex: 123456">
-    </div>
-    <button class="btn" id="btnStravaConnect">Se connecter à Strava</button>
-    <div id="stravaStatus" class="hint" style="margin-top:10px;"></div>
-    <hr style="border-color:var(--border);margin:16px 0;">
-    <h3>Sans relais — solution de repli (jeton manuel)</h3>
-    <p class="hint">Sans relais configuré ci-dessus, la connexion directe échoue presque toujours. En repli : va sur <a href="https://www.strava.com/settings/api" target="_blank">strava.com/settings/api</a>, copie ton « Your Access Token » (valable 6h) et colle-le ici.</p>
-    <div class="field"><label>Access token</label><input type="text" id="stravaManualToken" placeholder="colle ton token ici"></div>
-    <button class="btn secondary" id="btnStravaManualFetch">Récupérer mes activités</button>
-    <div id="stravaManualStatus" class="hint" style="margin-top:8px;"></div>
-  </div>
-
-  <div class="card">
-    <h3>Garmin</h3>
-    <p class="hint">
-      Garmin n'a pas d'API personnelle en libre-service — leur programme développeur exige une entité légale et
-      rejette les demandes à usage personnel. Les bibliothèques non-officielles qui contournaient ça (comme <span class="mono">garth</span>,
-      utilisée par la plupart des projets Python type <span class="mono">python-garminconnect</span>) ont été cassées par
-      Garmin en mars 2026 lors d'un changement de leur flux d'authentification ; leur propre mainteneur les a déclarées
-      abandonnées. Construire une connexion directe ici reposerait sur une fondation actuellement rompue et que Garmin
-      peut recasser sans préavis — ce n'est pas une piste fiable pour le moment.
-    </p>
-    <p class="hint"><b>Deux solutions qui, elles, fonctionnent bien :</b></p>
-    <ul class="hint" style="padding-left:18px;">
-      <li>Active la synchronisation automatique Garmin&nbsp;→&nbsp;Strava dans les réglages de ton compte Garmin Connect, puis n'utilise que la connexion Strava ci-dessus.</li>
-      <li>Exporte tes activités depuis Garmin Connect (Activités → icône export → CSV) et importe le fichier ci-dessous.</li>
-    </ul>
-    <input type="file" id="fileGarmin" accept=".csv,.tcx,.gpx">
-    <div id="garminStatus" class="hint" style="margin-top:8px;"></div>
-  </div>`;
-}
-
+/* ============================================================
+   STRAVA / GARMIN
+   ============================================================ */
 async function stravaConnect(){
   const workerUrl = document.getElementById('stravaWorkerUrl').value.trim().replace(/\/$/,'');
   const clientId = document.getElementById('stravaClientId').value.trim();
@@ -1000,10 +1479,8 @@ async function stravaConnect(){
   SETTINGS.strava = {...(SETTINGS.strava||{}), clientId, workerUrl};
   await saveSettings();
   const redirectUri = window.location.origin + window.location.pathname;
-  const url = `https://www.strava.com/oauth/authorize?client_id=${encodeURIComponent(clientId)}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=activity:read_all&approval_prompt=auto`;
-  window.location.href = url;
+  window.location.href = `https://www.strava.com/oauth/authorize?client_id=${encodeURIComponent(clientId)}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=activity:read_all&approval_prompt=auto`;
 }
-
 async function handleStravaCallback(){
   const params = new URLSearchParams(window.location.search);
   const code = params.get('code');
@@ -1024,7 +1501,7 @@ async function handleStravaCallback(){
         body: JSON.stringify({client_id:strava.clientId, client_secret:strava.clientSecret, code, grant_type:'authorization_code'})
       });
     } else {
-      alert("Aucun relais configuré : l'échange de jeton va probablement échouer. Configure l'URL du relais dans Connexions, ou utilise le jeton manuel.");
+      alert("Aucun relais configuré : l'échange de jeton va probablement échouer. Renseigne l'URL du relais dans Réglages → Strava, ou utilise le jeton manuel.");
       return;
     }
     const data = await resp.json();
@@ -1035,122 +1512,102 @@ async function handleStravaCallback(){
       await saveSettings();
       await stravaFetchActivities(data.access_token, null, strava.workerUrl);
     } else {
-      alert('Strava a répondu sans jeton — voir le champ jeton manuel comme solution de repli.');
+      alert('Strava a répondu sans jeton — utilise le champ « jeton manuel » en repli.');
     }
   }catch(e){
-    alert("L'échange de jeton a échoué depuis le navigateur (limite CORS connue côté Strava, sans relais configuré). Configure l'URL du relais Cloudflare Worker (voir README), ou utilise la solution de repli avec le jeton manuel ci-dessous.");
+    alert("L'échange de jeton a échoué depuis le navigateur (limite CORS connue côté Strava, sans relais configuré). Configure l'URL du relais Cloudflare Worker, ou utilise le jeton manuel.");
   }
 }
-
 async function stravaManualFetch(){
   const token = document.getElementById('stravaManualToken').value.trim();
   const status = document.getElementById('stravaManualStatus');
   if(!token){ status.textContent='Colle un token.'; return; }
-  status.textContent = 'Tentative de récupération…';
-  const workerUrl = (SETTINGS.strava||{}).workerUrl;
-  await stravaFetchActivities(token, status, workerUrl);
+  status.textContent = 'Récupération…';
+  await stravaFetchActivities(token, status, (SETTINGS.strava||{}).workerUrl);
 }
-
 async function stravaFetchActivities(token, status, workerUrl){
-  status = status || document.getElementById('stravaStatus');
+  status = status || document.getElementById('stravaSyncStatus') || document.getElementById('stravaStatus');
   const base = workerUrl ? workerUrl+'/activities' : 'https://www.strava.com/api/v3/athlete/activities';
   try{
-    const resp = await fetch(base+'?per_page=30', {
-      headers:{ 'Authorization': 'Bearer '+token }
-    });
+    const resp = await fetch(base+'?per_page=30', {headers:{'Authorization':'Bearer '+token}});
     if(!resp.ok) throw new Error('HTTP '+resp.status);
     const acts = await resp.json();
     let added = 0;
     acts.forEach(a=>{
       if(SESSIONS.find(s=>s.stravaId===a.id)) return;
-      const sport = mapStravaType(a.type||a.sport_type);
+      const sport = matchSport(a.type||a.sport_type);
       if(!sport) return;
       const session = {
-        id: uid(), stravaId:a.id, date: a.start_date_local.slice(0,10), sport,
-        duration: Math.round((a.moving_time||0)/60), distance: a.distance? Math.round(a.distance/100)/10 : null,
+        id:uid(), stravaId:a.id, date:a.start_date_local.slice(0,10), sport,
+        duration: Math.round((a.moving_time||0)/60),
+        distance: a.distance ? Math.round(a.distance/100)/10 : null,
         source:'strava', completion:null, notes:a.name||'',
       };
       autoLinkSession(session);
       SESSIONS.push(session);
       added++;
     });
-    await saveSessions();
-    await savePlan();
-    status.textContent = `${added} activité(s) récupérée(s) depuis Strava.`;
-    if(currentTab==='seances'||currentTab==='planning'||currentTab==='calendar') renderView();
+    await saveSessions(); await savePlan();
+    if(status) status.textContent = `${added} activité(s) récupérée(s) depuis Strava.`;
+    renderAll();
   }catch(e){
-    status.textContent = workerUrl
+    if(status) status.textContent = workerUrl
       ? "Le relais n'a pas répondu correctement — vérifie l'URL et que le Worker est bien déployé (voir README)."
-      : "Connexion directe bloquée par Strava (CORS) depuis ce navigateur, sans relais configuré. Configure l'URL du relais Cloudflare Worker ci-dessus (voir README), ou utilise l'export de données Strava.";
+      : "Connexion directe bloquée par Strava (CORS), sans relais configuré. Configure l'URL du relais, ou utilise le jeton manuel.";
   }
 }
-function mapStravaType(t){
-  if(!t) return null;
-  t = t.toLowerCase();
-  if(t.includes('row')) return 'aviron';
-  if(t.includes('ride')||t.includes('bike')||t.includes('cycl')) return 'velo';
-  if(t.includes('run')) return 'course';
-  if(t.includes('weight')||t.includes('workout')||t.includes('strength')) return 'muscu';
-  return null;
-}
-
-/* Auto-association : cherche une séance planifiée non liée, même sport, date à ±1 jour, et calcule le % de réalisation. */
 function autoLinkSession(session){
   const candidates = PLAN.filter(p=>!p.linkedSessionId && p.sport===session.sport);
   if(!candidates.length) return session;
-  const sessionDate = new Date(session.date+'T00:00:00');
+  const d = new Date(session.date+'T00:00:00');
   let best=null, bestDiff=Infinity;
   candidates.forEach(p=>{
-    const diff = Math.abs(new Date(p.date+'T00:00:00') - sessionDate);
-    if(diff <= 86400000 && diff<bestDiff){ best=p; bestDiff=diff; }
+    const diff = Math.abs(new Date(p.date+'T00:00:00') - d);
+    if(diff <= 86400000 && diff < bestDiff){ best=p; bestDiff=diff; }
   });
   if(best){
     const metric = SPORTS[session.sport].metric;
-    let pct=null;
-    if(metric==='distance' && best.targetDistance && session.distance) pct = Math.round((session.distance/best.targetDistance)*100);
-    else if(best.targetDuration && session.duration) pct = Math.round((session.duration/best.targetDuration)*100);
+    let pct = null;
+    if(metric==='distance' && best.targetDistance && session.distance) pct = Math.round(session.distance/best.targetDistance*100);
+    else if(best.targetDuration && session.duration) pct = Math.round(session.duration/best.targetDuration*100);
     session.completion = pct;
     session.linkedPlanId = best.id;
     best.linkedSessionId = session.id;
   }
   return session;
 }
-
 async function handleGarminFile(file){
   const status = document.getElementById('garminStatus');
   status.textContent = 'Lecture du fichier…';
-  const name = file.name.toLowerCase();
-  if(name.endsWith('.csv')){
-    const text = await file.text();
-    const rows = text.split('\n').map(r=>r.split(','));
-    const header = rows[0].map(h=>h.toLowerCase().trim());
-    const idxDate = header.findIndex(h=>h.includes('date'));
-    const idxType = header.findIndex(h=>h.includes('activity type')||h.includes('type'));
-    const idxDur = header.findIndex(h=>h.includes('time')||h.includes('durée')||h.includes('duree'));
-    const idxDist = header.findIndex(h=>h.includes('distance'));
-    let added=0;
-    rows.slice(1).forEach(r=>{
-      if(r.length<2) return;
-      const dateISO = parseFrenchDate(r[idxDate]);
-      const sport = matchSport((r[idxType]||'').toString());
-      if(!dateISO || !sport) return;
-      const session = {
-        id:uid(), date:dateISO, sport,
-        duration: idxDur>-1 ? parseDurationToMin(r[idxDur]) : null,
-        distance: idxDist>-1 ? Number(r[idxDist])||null : null,
-        source:'garmin_csv', completion:null, notes:''
-      };
-      autoLinkSession(session);
-      SESSIONS.push(session);
-      added++;
-    });
-    await saveSessions();
-    await savePlan();
-    status.textContent = `${added} activité(s) importée(s) depuis le CSV Garmin.`;
-    if(currentTab==='seances'||currentTab==='planning'||currentTab==='calendar') renderView();
-  } else {
-    status.textContent = 'Format TCX/GPX détecté — pour un import fiable, préfère l’export CSV Garmin Connect (Activités > Exporter), ou ajoute la séance manuellement via le bouton +.';
+  if(!file.name.toLowerCase().endsWith('.csv')){
+    status.textContent = "Format TCX/GPX : préfère l'export CSV de Garmin Connect (Activités → Exporter), ou ajoute la séance manuellement.";
+    return;
   }
+  const rows = (await file.text()).split('\n').map(r=>r.split(','));
+  const header = rows[0].map(h=>h.toLowerCase().trim());
+  const idxDate = header.findIndex(h=>h.includes('date'));
+  const idxType = header.findIndex(h=>h.includes('activity type')||h.includes('type'));
+  const idxDur = header.findIndex(h=>h.includes('time')||h.includes('durée')||h.includes('duree'));
+  const idxDist = header.findIndex(h=>h.includes('distance'));
+  let added = 0;
+  rows.slice(1).forEach(r=>{
+    if(r.length<2) return;
+    const dateISO = parseFrenchDate(r[idxDate]);
+    const sport = matchSport((r[idxType]||'').toString());
+    if(!dateISO || !sport) return;
+    const session = {
+      id:uid(), date:dateISO, sport,
+      duration: idxDur>-1 ? parseDurationToMin(r[idxDur]) : null,
+      distance: idxDist>-1 ? Number(r[idxDist])||null : null,
+      source:'garmin_csv', completion:null, notes:'',
+    };
+    autoLinkSession(session);
+    SESSIONS.push(session);
+    added++;
+  });
+  await saveSessions(); await savePlan();
+  status.textContent = `${added} activité(s) importée(s) depuis le CSV Garmin.`;
+  renderAll();
 }
 function parseDurationToMin(v){
   if(!v) return null;
@@ -1163,324 +1620,199 @@ function parseDurationToMin(v){
   return Number(v)||null;
 }
 
-/* ============ QUICK ADD MODAL ============ */
-let quickAddSport = 'course';
-let quickAddDate = null;
-let editingSessionId = null;
+/* ============================================================
+   ÉVÉNEMENTS (délégation)
+   ============================================================ */
+document.addEventListener('click', async (e)=>{
+  const el = e.target.closest('[data-act]');
+  if(!el) return;
+  const act = el.dataset.act;
 
-function openModal(html){
-  document.getElementById('modalContent').innerHTML = html;
-  document.getElementById('modalBackdrop').classList.add('open');
-}
-function closeModal(){ document.getElementById('modalBackdrop').classList.remove('open'); }
+  switch(act){
+    case 'tab': goTab(Number(el.dataset.i)); break;
 
-function openQuickAdd(defaultDate){
-  editingSessionId = null;
-  quickAddSport = 'course';
-  quickAddDate = defaultDate || todayISO();
-  openModal(quickAddHTML());
-  attachQuickAddHandlers();
-}
+    case 'goday':
+      calSelected = el.dataset.d;
+      calDate = new Date(el.dataset.d+'T00:00:00');
+      goTab(1);
+      break;
 
-function openEditSession(sessionId){
-  const s = SESSIONS.find(x=>x.id===sessionId);
-  if(!s) return;
-  editingSessionId = sessionId;
-  quickAddSport = s.sport;
-  quickAddDate = s.date;
-  openModal(quickAddHTML());
-  attachQuickAddHandlers();
-  const dur = document.getElementById('qaDuration'); if(dur){ dur.value = s.duration||''; dur.dispatchEvent(new Event('input')); }
-  const dist = document.getElementById('qaDistance'); if(dist) dist.value = s.distance||'';
-  const notes = document.getElementById('qaNotes'); if(notes) notes.value = s.notes||'';
-  const rpe = document.getElementById('qaRpe'); if(rpe) rpe.value = s.rpe||6;
-  const link = document.getElementById('qaLink'); if(link && s.linkedPlanId) link.value = s.linkedPlanId;
-}
+    case 'cal-nav':
+      calDate = new Date(calDate.getFullYear(), calDate.getMonth()+Number(el.dataset.n), 1);
+      renderAll();
+      break;
+    case 'cal-day': calSelected = el.dataset.d; renderAll(); break;
 
-async function deleteSession(sessionId){
-  if(!confirm('Supprimer cette séance ?')) return;
-  const s = SESSIONS.find(x=>x.id===sessionId);
-  if(s && s.linkedPlanId){ const p=PLAN.find(x=>x.id===s.linkedPlanId); if(p) p.linkedSessionId=null; await savePlan(); }
-  SESSIONS = SESSIONS.filter(x=>x.id!==sessionId);
-  await saveSessions();
-  closeModal();
-  renderView();
-}
-
-function markPlanDone(planId){
-  const plan = PLAN.find(p=>p.id===planId);
-  if(!plan) return;
-  editingSessionId = null;
-  quickAddSport = plan.sport;
-  quickAddDate = plan.date;
-  openModal(quickAddHTML());
-  attachQuickAddHandlers();
-  const sel = document.getElementById('qaLink');
-  if(sel) sel.value = planId;
-}
-
-function quickAddHTML(){
-  const candidatePlans = PLAN.filter(p=>!p.linkedSessionId && p.sport===quickAddSport)
-    .sort((a,b)=>Math.abs(new Date(a.date)-new Date()) - Math.abs(new Date(b.date)-new Date()))
-    .slice(0,8);
-  const isEdit = !!editingSessionId;
-  return `
-    <button class="close-x" id="closeModalBtn">✕</button>
-    <h2>${isEdit?'Modifier la séance':'Nouvelle séance'}</h2>
-    <div class="sportpicker">
-      ${Object.entries(SPORTS).map(([k,v])=>`<button data-sport="${k}" class="${quickAddSport===k?'sel':''}">${v.label}</button>`).join('')}
-    </div>
-    <div class="field"><label>Date</label><input type="date" id="qaDate" value="${quickAddDate||todayISO()}"></div>
-    <div class="grid2">
-      <div class="field">
-        <label>Durée (min)</label>
-        <input type="number" id="qaDuration" min="0" placeholder="45">
-        <div class="hint" id="qaDurationPreview" style="margin:4px 0 0;"></div>
-      </div>
-      <div class="field"><label>Distance (km)</label><input type="number" id="qaDistance" min="0" step="0.1" placeholder="${quickAddSport==='muscu'?'—':'10'}" ${quickAddSport==='muscu'?'disabled':''}></div>
-    </div>
-    <div class="field"><label>Notes ${quickAddSport==='muscu'?'(exercices / séries)':''}</label><textarea id="qaNotes" rows="2" placeholder="${quickAddSport==='muscu'?'ex: Squat 4x8, Développé couché 4x8...':'Ressenti, conditions...'}"></textarea></div>
-    <div class="field">
-      <label>Ressenti</label>
-      <input type="range" id="qaRpe" min="1" max="10" value="6">
-    </div>
-    <div class="field">
-      <label>Associer à une séance planifiée</label>
-      <select id="qaLink">
-        <option value="">Aucune</option>
-        ${candidatePlans.map(p=>`<option value="${p.id}">${fmtDate(p.date)} — ${p.title||SPORTS[p.sport].label}</option>`).join('')}
-      </select>
-    </div>
-    <button class="btn" id="btnSaveSession" style="width:100%;margin-top:6px;">${isEdit?'Enregistrer les modifications':'Enregistrer la séance'}</button>
-    ${isEdit?`<button class="btn danger" id="btnDeleteSessionModal" style="width:100%;margin-top:8px;">Supprimer cette séance</button>`:''}
-  `;
-}
-
-function attachQuickAddHandlers(){
-  document.getElementById('closeModalBtn').onclick = closeModal;
-  document.querySelectorAll('#modalContent .sportpicker button').forEach(b=>{
-    b.onclick = ()=>{ quickAddSport = b.dataset.sport; openModal(quickAddHTML()); attachQuickAddHandlers(); };
-  });
-  document.getElementById('btnSaveSession').onclick = saveQuickAddSession;
-  const durInput = document.getElementById('qaDuration');
-  const preview = document.getElementById('qaDurationPreview');
-  if(durInput && preview){
-    const update = ()=>{ const f = formatDuration(durInput.value); preview.textContent = f ? '= '+f : ''; };
-    durInput.addEventListener('input', update);
-    update();
-  }
-  const delBtn = document.getElementById('btnDeleteSessionModal');
-  if(delBtn) delBtn.onclick = ()=>deleteSession(editingSessionId);
-}
-
-async function saveQuickAddSession(){
-  const date = document.getElementById('qaDate').value || todayISO();
-  const duration = Number(document.getElementById('qaDuration').value) || null;
-  const distance = Number(document.getElementById('qaDistance').value) || null;
-  const notes = document.getElementById('qaNotes').value;
-  const rpe = Number(document.getElementById('qaRpe').value);
-  const linkId = document.getElementById('qaLink').value;
-
-  let session;
-  if(editingSessionId){
-    session = SESSIONS.find(s=>s.id===editingSessionId);
-    if(!session) return;
-    // délier l'ancienne séance planifiée associée si elle a changé
-    if(session.linkedPlanId && session.linkedPlanId!==linkId){
-      const oldPlan = PLAN.find(p=>p.id===session.linkedPlanId);
-      if(oldPlan) oldPlan.linkedSessionId = null;
+    case 'add-session':
+      draft = newDraft(el.dataset.d || todayISO());
+      openSessionSheet();
+      break;
+    case 'edit-session': {
+      const s = SESSIONS.find(x=>x.id===el.dataset.id);
+      if(!s) break;
+      draft = {id:s.id, date:s.date, sport:s.sport, duration:s.duration||null, distance:s.distance||null,
+               rpe:s.rpe||null, feel:s.feel||null, intervals:s.intervals||'', notes:s.notes||'',
+               linkedPlanId:s.linkedPlanId||'', more: !!(s.rpe||s.feel||s.intervals||s.linkedPlanId)};
+      openSessionSheet();
+      break;
     }
-    session.date = date; session.sport = quickAddSport; session.duration = duration;
-    session.distance = distance; session.notes = notes; session.rpe = rpe;
-    session.completion = null; session.linkedPlanId = null;
-  } else {
-    session = { id:uid(), date, sport:quickAddSport, duration, distance, notes, rpe, source:'manuel', completion:null };
-    SESSIONS.push(session);
-  }
-
-  if(linkId){
-    const plan = PLAN.find(p=>p.id===linkId);
-    if(plan){
-      const metric = SPORTS[quickAddSport].metric;
-      let pct = null;
-      if(metric==='distance' && plan.targetDistance && distance) pct = Math.round((distance/plan.targetDistance)*100);
-      else if(plan.targetDuration && duration) pct = Math.round((duration/plan.targetDuration)*100);
-      session.completion = pct;
-      session.linkedPlanId = plan.id;
-      plan.linkedSessionId = session.id;
+    case 'draft-sport': readDraftInputs(); draft.sport = el.dataset.v; openSessionSheet(); break;
+    case 'draft-dur': {
+      readDraftInputs();
+      const v = el.dataset.v;
+      draft.duration = v==='+15' ? (draft.duration||0)+15 : Number(v);
+      openSessionSheet();
+      break;
     }
-  }
-  await saveSessions();
-  await savePlan();
-  closeModal();
-  renderView();
-}
+    case 'draft-more': readDraftInputs(); draft.more = !draft.more; openSessionSheet(); break;
+    case 'draft-feel': readDraftInputs(); draft.feel = draft.feel===el.dataset.v ? null : el.dataset.v; openSessionSheet(); break;
+    case 'draft-rpe': readDraftInputs(); draft.rpe = draft.rpe===Number(el.dataset.v) ? null : Number(el.dataset.v); openSessionSheet(); break;
+    case 'save-session': await saveDraftSession(); break;
+    case 'del-session': await deleteDraftSession(); break;
 
-/* ============ ADD PLAN MANUAL ============ */
-function openAddPlanModal(){
-  openModal(`
-    <button class="close-x" id="closeModalBtn">✕</button>
-    <h2>Ajouter une séance au planning</h2>
-    <div class="field"><label>Date</label><input type="date" id="apDate" value="${todayISO()}"></div>
-    <div class="field"><label>Sport</label>
-      <select id="apSport">${Object.entries(SPORTS).map(([k,v])=>`<option value="${k}">${v.label}</option>`).join('')}</select>
-    </div>
-    <div class="field"><label>Titre / description</label><input type="text" id="apTitle" placeholder="ex: Sortie seuil 45min"></div>
-    <div class="grid2">
-      <div class="field"><label>Durée cible (min)</label><input type="number" id="apDuration"></div>
-      <div class="field"><label>Distance cible (km)</label><input type="number" id="apDistance" step="0.1"></div>
-    </div>
-    <button class="btn" id="btnSavePlan" style="width:100%;">Ajouter au planning</button>
-  `);
-  document.getElementById('closeModalBtn').onclick = closeModal;
-  document.getElementById('btnSavePlan').onclick = async ()=>{
-    PLAN.push({
-      id:uid(),
-      date:document.getElementById('apDate').value||todayISO(),
-      sport:document.getElementById('apSport').value,
-      title:document.getElementById('apTitle').value,
-      targetDuration:Number(document.getElementById('apDuration').value)||null,
-      targetDistance:Number(document.getElementById('apDistance').value)||null,
-      source:'manuel', linkedSessionId:null,
-    });
-    await savePlan();
-    closeModal();
-    renderView();
-  };
-}
+    case 'mark-done': {
+      const p = PLAN.find(x=>x.id===el.dataset.id);
+      if(!p) break;
+      draft = newDraft(p.date, p.sport);
+      draft.duration = p.targetDuration || null;
+      draft.distance = p.targetDistance || null;
+      draft.linkedPlanId = p.id;
+      draft.more = true;
+      openSessionSheet();
+      break;
+    }
+    case 'edit-plan': openPlanSheet(el.dataset.id); break;
+    case 'add-plan': openPlanSheet(null); break;
+    case 'save-plan': await savePlanSheet(); break;
+    case 'del-plan': {
+      if(!confirm('Retirer cette séance du programme ?')) break;
+      PLAN = PLAN.filter(x=>x.id!==el.dataset.id);
+      await savePlan();
+      closeSheet();
+      renderAll();
+      break;
+    }
+    case 'plan-filter': planFilter = el.dataset.v; renderAll(); break;
 
-/* ============ GENERIC HANDLERS ============ */
-function attachHandlers(){
-  if(currentTab==='dashboard'){
-    const ps = document.getElementById('dashPeriod'); if(ps) ps.onchange = e=>{ dashPeriod=e.target.value; renderView(); };
-    document.querySelectorAll('.week-cell[data-cal-day]').forEach(c=>{
-      c.onclick = ()=>{ calSelected = c.dataset.calDay; calDate = new Date(c.dataset.calDay+'T00:00:00'); currentTab='calendar'; renderTabs(); renderView(); };
-    });
-    initDashboardChart();
-    initProgressChart();
-  }
-  if(currentTab==='calendar'){
-    document.querySelectorAll('[data-cal-nav]').forEach(b=>{
-      b.onclick = ()=>{ calDate.setMonth(calDate.getMonth()+Number(b.dataset.calNav)); renderView(); };
-    });
-    document.querySelectorAll('[data-cal-day]').forEach(c=>{
-      c.onclick = ()=>{ calSelected = c.dataset.calDay; renderView(); };
-    });
-    const badd = document.getElementById('btnCalAdd');
-    if(badd) badd.onclick = ()=>openQuickAdd(calSelected || todayISO());
-    document.querySelectorAll('[data-mark-done]').forEach(b=>{
-      b.onclick = ()=>markPlanDone(b.dataset.markDone);
-    });
-    document.querySelectorAll('[data-edit-session]').forEach(b=>{
-      b.onclick = (e)=>{ e.stopPropagation(); openEditSession(b.dataset.editSession); };
-    });
-  }
-  if(currentTab==='seances'){
-    document.querySelectorAll('[data-del-session]').forEach(b=>{
-      b.onclick = ()=>deleteSession(b.dataset.delSession);
-    });
-    document.querySelectorAll('[data-edit-session]').forEach(b=>{
-      b.onclick = ()=>openEditSession(b.dataset.editSession);
-    });
-  }
-  if(currentTab==='planning'){
-    const btn = document.getElementById('btnAddPlan'); if(btn) btn.onclick = openAddPlanModal;
-    document.querySelectorAll('[data-del-plan]').forEach(b=>{
-      b.onclick = async ()=>{
-        PLAN = PLAN.filter(x=>x.id!==b.dataset.delPlan);
-        await savePlan();
-        renderView();
-      };
-    });
-    document.querySelectorAll('[data-mark-done]').forEach(b=>{
-      b.onclick = ()=>markPlanDone(b.dataset.markDone);
-    });
-  }
-  if(currentTab==='parametres'){
-    document.querySelectorAll('[data-psub]').forEach(b=>{
-      b.onclick = ()=>{ paramSubtab = b.dataset.psub; renderView(); };
-    });
-    if(paramSubtab==='compte'){
-      const bl = document.getElementById('btnLockApp'); if(bl) bl.onclick = ()=>{ lockMode='login'; renderLock(); };
-      const bp = document.getElementById('btnChangePw'); if(bp) bp.onclick = changePassword;
-      const bs = document.getElementById('btnSaveSecret'); if(bs) bs.onclick = saveSecretQuestion;
-      const nt = document.getElementById('notifToggle'); if(nt) nt.onchange = toggleNotifications;
-      const be = document.getElementById('btnExportBackup'); if(be) be.onclick = exportBackup;
-      const fb = document.getElementById('fileBackup'); if(fb) fb.onchange = e=>{ if(e.target.files[0]) importBackup(e.target.files[0], document.getElementById('backupStatus')); };
-    }
-    if(paramSubtab==='objectifs'){
-      const bg = document.getElementById('btnSaveGoals'); if(bg) bg.onclick = saveGoals;
-    }
-    if(paramSubtab==='import'){
-      const fe = document.getElementById('fileExcel'); if(fe) fe.onchange = e=>{ if(e.target.files[0]) handleExcelFile(e.target.files[0]); };
-      const fp = document.getElementById('filePdf'); if(fp) fp.onchange = e=>{ if(e.target.files[0]) handlePdfFile(e.target.files[0]); };
-    }
-    if(paramSubtab==='connexions'){
-      const b1 = document.getElementById('btnStravaConnect'); if(b1) b1.onclick = stravaConnect;
-      const b2 = document.getElementById('btnStravaManualFetch'); if(b2) b2.onclick = stravaManualFetch;
-      const fg = document.getElementById('fileGarmin'); if(fg) fg.onchange = e=>{ if(e.target.files[0]) handleGarminFile(e.target.files[0]); };
-    }
-  }
-}
+    case 'recap-period': recapPeriod = el.dataset.v; renderAll(); break;
+    case 'recap-sport': recapSport = el.dataset.v; renderAll(); break;
 
-async function saveSessions(){ await saveKey('sessions', SESSIONS); }
-async function savePlan(){ await saveKey('plan', PLAN); }
-async function saveSettings(){ await saveKey('settings', SETTINGS); }
+    case 'settings-page': settingsPage = el.dataset.p; renderAll(); document.getElementById('pane4').scrollTop = 0; break;
+    case 'settings-back': settingsPage = null; renderAll(); break;
+    case 'goal': {
+      const k = el.dataset.s;
+      const goals = SETTINGS.goals || (SETTINGS.goals = {});
+      const cur = (goals[k]||{}).sessions || 0;
+      const next = Math.max(0, Math.min(14, cur + Number(el.dataset.n)));
+      if(next===0) delete goals[k]; else goals[k] = {sessions:next};
+      await saveSettings();
+      renderAll();
+      break;
+    }
+    case 'open-import': settingsPage = 'import'; goTab(4); break;
+    case 'open-export': openExportSheet(); break;
+    case 'do-export': exportSessionsCSV(); break;
+    case 'export-backup': await exportBackup(); break;
+    case 'import-pdf': await importPdfLines(); break;
 
-/* ============ ACCÈS PROTÉGÉ (email + mot de passe) ============ */
+    case 'strava-connect': await stravaConnect(); break;
+    case 'strava-manual': await stravaManualFetch(); break;
+    case 'strava-sync': await stravaFetchActivities((SETTINGS.strava||{}).accessToken, document.getElementById('stravaSyncStatus'), (SETTINGS.strava||{}).workerUrl); break;
+
+    case 'toggle-notif': await toggleNotifications(el); break;
+    case 'change-pw': await changePassword(); break;
+    case 'save-secret': await saveSecretQuestion(); break;
+    case 'lock-app': lockMode='login'; renderLock(); break;
+
+    case 'close-sheet': closeSheet(); break;
+  }
+});
+
+document.addEventListener('change', (e)=>{
+  const t = e.target;
+  if(t.id==='fileExcel' && t.files[0]) handleExcelFile(t.files[0]);
+  if(t.id==='filePdf' && t.files[0]) handlePdfFile(t.files[0]);
+  if(t.id==='fileGarmin' && t.files[0]) handleGarminFile(t.files[0]);
+  if(t.id==='fileBackup' && t.files[0]) importBackup(t.files[0], document.getElementById('backupStatus'));
+});
+
+/* ============================================================
+   ACCÈS PROTÉGÉ
+   ============================================================ */
+let lockMode = 'login';
 async function sha256Hex(str){
-  const enc = new TextEncoder().encode(str);
-  const buf = await crypto.subtle.digest('SHA-256', enc);
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
   return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
 }
-
+function lockShell(inner){
+  return `<div class="lock-wrap">
+    <div class="brand">Carnet d'entrainement</div>
+    ${inner}
+  </div>`;
+}
 function renderLock(){
   const el = document.getElementById('lockScreen');
   const auth = SETTINGS.auth;
-  if(!auth){
-    el.innerHTML = lockSetupHTML();
-    attachLockSetupHandlers();
-  } else if(lockMode==='recover'){
-    el.innerHTML = lockRecoverHTML();
-    attachLockRecoverHandlers();
-  } else if(lockMode==='reset'){
-    el.innerHTML = lockResetHTML();
-    attachLockResetHandlers();
-  } else {
-    el.innerHTML = lockLoginHTML(auth.email);
-    attachLockLoginHandlers();
-  }
-  el.style.display = 'flex';
+  if(!auth) el.innerHTML = lockShell(lockSetupHTML());
+  else if(lockMode==='recover') el.innerHTML = lockShell(lockRecoverHTML());
+  else if(lockMode==='reset') el.innerHTML = lockShell(lockResetHTML());
+  else el.innerHTML = lockShell(lockLoginHTML(auth.email));
+  el.style.display = 'block';
   document.getElementById('app').style.display = 'none';
-  document.getElementById('fabAdd').style.display = 'none';
+  attachLockHandlers();
 }
-
 function lockSetupHTML(){
-  return `<div class="lock-wrap"><div class="lock-card">
-    <h2>Créer ton accès</h2>
-    <div class="lock-sub">Protège ce carnet avec un email et un mot de passe. Ils restent stockés uniquement dans le stockage privé de cette appli (le mot de passe est haché, jamais gardé en clair).</div>
-    <div class="field"><label>Email</label><input type="text" id="setupEmail" placeholder="toi@exemple.com"></div>
-    <div class="field"><label>Mot de passe</label><input type="password" id="setupPw"></div>
-    <div class="field"><label>Confirmer le mot de passe</label><input type="password" id="setupPw2"></div>
-    <div class="field"><label>Question secrète (optionnel, pour récupérer l'accès)</label><input type="text" id="setupQuestion" placeholder="ex: Le nom de mon premier club ?"></div>
-    <div class="field"><label>Réponse</label><input type="text" id="setupAnswer"></div>
-    <button class="btn" id="btnSetupCreate" style="width:100%;">Créer l'accès</button>
-    <div class="lock-error" id="setupError"></div>
-  </div></div>`;
+  return `<h1>Créer ton accès</h1>
+  <div class="lock-sub">Protège ce carnet avec un email et un mot de passe. Ils restent stockés dans ce navigateur ; le mot de passe est haché, jamais gardé en clair.</div>
+  <div class="field"><label>Email</label><input type="text" id="setupEmail" placeholder="toi@exemple.fr"></div>
+  <div class="field"><label>Mot de passe</label><input type="password" id="setupPw"></div>
+  <div class="field"><label>Confirmer</label><input type="password" id="setupPw2"></div>
+  <div class="field"><label>Question secrète (facultatif)</label><input type="text" id="setupQuestion" placeholder="ex : Le nom de mon premier club ?"></div>
+  <div class="field"><label>Réponse</label><input type="text" id="setupAnswer"></div>
+  <button class="btn block" id="btnSetupCreate">Créer l'accès</button>
+  <div class="lock-error" id="setupError"></div>`;
 }
-function attachLockSetupHandlers(){
-  document.getElementById('btnSetupCreate').onclick = async ()=>{
-    const email = document.getElementById('setupEmail').value.trim();
-    const pw = document.getElementById('setupPw').value;
-    const pw2 = document.getElementById('setupPw2').value;
-    const question = document.getElementById('setupQuestion').value.trim();
-    const answer = document.getElementById('setupAnswer').value.trim();
-    const err = document.getElementById('setupError');
+function lockLoginHTML(email){
+  return `<h1>Content de te revoir</h1>
+  <div class="lock-sub">Tes données restent sur cet appareil. Le mot de passe ne les quitte jamais.</div>
+  <div class="field"><label>Email</label><input type="text" id="loginEmail" value="${esc(email||'')}"></div>
+  <div class="field"><label>Mot de passe</label><input type="password" id="loginPw"></div>
+  <button class="btn block" id="btnLoginGo">Ouvrir mon carnet</button>
+  <button class="sheet-close" id="btnForgot" style="width:100%;margin-top:14px;text-align:center;">Mot de passe oublié ?</button>
+  <div class="lock-error" id="loginError"></div>`;
+}
+function lockRecoverHTML(){
+  const auth = SETTINGS.auth || {};
+  if(!auth.secretQuestion){
+    return `<h1>Récupération impossible</h1>
+    <div class="lock-sub">Aucune question secrète n'a été configurée. Sans elle, il n'y a pas de moyen de réinitialiser le mot de passe sans effacer les données du site.</div>
+    <button class="btn sec block" id="btnBackToLogin">Retour</button>`;
+  }
+  return `<h1>Mot de passe oublié</h1>
+  <div class="lock-sub">${esc(auth.secretQuestion)}</div>
+  <div class="field"><label>Réponse</label><input type="text" id="recoverAnswer"></div>
+  <button class="btn block" id="btnRecoverGo">Valider</button>
+  <button class="btn sec block" id="btnBackToLogin" style="margin-top:10px;">Retour</button>
+  <div class="lock-error" id="recoverError"></div>`;
+}
+function lockResetHTML(){
+  return `<h1>Nouveau mot de passe</h1>
+  <div class="lock-sub">Choisis un nouveau mot de passe pour ton carnet.</div>
+  <div class="field"><label>Nouveau mot de passe</label><input type="password" id="resetPw"></div>
+  <div class="field"><label>Confirmer</label><input type="password" id="resetPw2"></div>
+  <button class="btn block" id="btnResetGo">Réinitialiser et ouvrir</button>
+  <div class="lock-error" id="resetError"></div>`;
+}
+function attachLockHandlers(){
+  const g = id => document.getElementById(id);
+  if(g('btnSetupCreate')) g('btnSetupCreate').onclick = async ()=>{
+    const email = g('setupEmail').value.trim(), pw = g('setupPw').value, pw2 = g('setupPw2').value;
+    const question = g('setupQuestion').value.trim(), answer = g('setupAnswer').value.trim();
+    const err = g('setupError');
     if(!email || !pw){ err.textContent='Email et mot de passe requis.'; return; }
     if(pw!==pw2){ err.textContent='Les mots de passe ne correspondent pas.'; return; }
     if(pw.length<4){ err.textContent='Mot de passe trop court (4 caractères minimum).'; return; }
-    const hash = await sha256Hex(pw);
-    SETTINGS.auth = {email, hash};
+    SETTINGS.auth = {email, hash: await sha256Hex(pw)};
     if(question && answer){
       SETTINGS.auth.secretQuestion = question;
       SETTINGS.auth.secretAnswerHash = await sha256Hex(answer.toLowerCase());
@@ -1488,89 +1820,25 @@ function attachLockSetupHandlers(){
     await saveSettings();
     unlockApp();
   };
-}
-
-function lockLoginHTML(email){
-  return `<div class="lock-wrap"><div class="lock-card">
-    <h2>Accès protégé</h2>
-    <div class="lock-sub">Connecte-toi pour ouvrir ton carnet d'entraînement.</div>
-    <div class="field"><label>Email</label><input type="text" id="loginEmail" value="${email||''}"></div>
-    <div class="field"><label>Mot de passe</label><input type="password" id="loginPw"></div>
-    <button class="btn" id="btnLoginGo" style="width:100%;">Se connecter</button>
-    <button class="btn secondary" id="btnForgot" style="width:100%;margin-top:8px;">Mot de passe oublié ?</button>
-    <div class="lock-error" id="loginError"></div>
-  </div></div>`;
-}
-function attachLockLoginHandlers(){
-  const go = async ()=>{
-    const email = document.getElementById('loginEmail').value.trim();
-    const pw = document.getElementById('loginPw').value;
-    const err = document.getElementById('loginError');
-    const auth = SETTINGS.auth;
-    const hash = await sha256Hex(pw);
-    if(email.toLowerCase()===auth.email.toLowerCase() && hash===auth.hash){
-      unlockApp();
-    } else {
-      err.textContent = 'Email ou mot de passe incorrect.';
-    }
-  };
-  document.getElementById('btnLoginGo').onclick = go;
-  document.getElementById('loginPw').addEventListener('keydown', e=>{ if(e.key==='Enter') go(); });
-  document.getElementById('btnForgot').onclick = ()=>{ lockMode='recover'; renderLock(); };
-}
-
-let lockMode = 'login'; // 'login' | 'recover' | 'reset'
-
-function lockRecoverHTML(){
-  const auth = SETTINGS.auth || {};
-  if(!auth.secretQuestion){
-    return `<div class="lock-wrap"><div class="lock-card">
-      <h2>Récupération impossible</h2>
-      <div class="lock-sub">Aucune question secrète n'a été configurée pour ce compte. Sans elle, il n'y a pas de moyen de réinitialiser le mot de passe sans effacer les données du site (Réglages du navigateur → Effacer les données de ce site).</div>
-      <button class="btn secondary" id="btnBackToLogin" style="width:100%;">Retour</button>
-    </div></div>`;
+  if(g('btnLoginGo')){
+    const go = async ()=>{
+      const email = g('loginEmail').value.trim(), pw = g('loginPw').value, err = g('loginError');
+      const auth = SETTINGS.auth;
+      if(email.toLowerCase()===(auth.email||'').toLowerCase() && await sha256Hex(pw)===auth.hash) unlockApp();
+      else err.textContent = 'Email ou mot de passe incorrect.';
+    };
+    g('btnLoginGo').onclick = go;
+    g('loginPw').addEventListener('keydown', e=>{ if(e.key==='Enter') go(); });
+    g('btnForgot').onclick = ()=>{ lockMode='recover'; renderLock(); };
   }
-  return `<div class="lock-wrap"><div class="lock-card">
-    <h2>Mot de passe oublié</h2>
-    <div class="lock-sub">${auth.secretQuestion}</div>
-    <div class="field"><label>Réponse</label><input type="text" id="recoverAnswer"></div>
-    <button class="btn" id="btnRecoverGo" style="width:100%;">Valider</button>
-    <button class="btn secondary" id="btnBackToLogin" style="width:100%;margin-top:8px;">Retour</button>
-    <div class="lock-error" id="recoverError"></div>
-  </div></div>`;
-}
-function attachLockRecoverHandlers(){
-  const back = document.getElementById('btnBackToLogin');
-  if(back) back.onclick = ()=>{ lockMode='login'; renderLock(); };
-  const go = document.getElementById('btnRecoverGo');
-  if(go) go.onclick = async ()=>{
-    const ans = document.getElementById('recoverAnswer').value.trim().toLowerCase();
-    const err = document.getElementById('recoverError');
-    const auth = SETTINGS.auth;
-    const hash = await sha256Hex(ans);
-    if(hash===auth.secretAnswerHash){
-      lockMode='reset'; renderLock();
-    } else {
-      err.textContent = 'Réponse incorrecte.';
-    }
+  if(g('btnBackToLogin')) g('btnBackToLogin').onclick = ()=>{ lockMode='login'; renderLock(); };
+  if(g('btnRecoverGo')) g('btnRecoverGo').onclick = async ()=>{
+    const hash = await sha256Hex(g('recoverAnswer').value.trim().toLowerCase());
+    if(hash===SETTINGS.auth.secretAnswerHash){ lockMode='reset'; renderLock(); }
+    else g('recoverError').textContent = 'Réponse incorrecte.';
   };
-}
-
-function lockResetHTML(){
-  return `<div class="lock-wrap"><div class="lock-card">
-    <h2>Nouveau mot de passe</h2>
-    <div class="lock-sub">Choisis un nouveau mot de passe pour ton carnet.</div>
-    <div class="field"><label>Nouveau mot de passe</label><input type="password" id="resetPw"></div>
-    <div class="field"><label>Confirmer</label><input type="password" id="resetPw2"></div>
-    <button class="btn" id="btnResetGo" style="width:100%;">Réinitialiser et ouvrir</button>
-    <div class="lock-error" id="resetError"></div>
-  </div></div>`;
-}
-function attachLockResetHandlers(){
-  document.getElementById('btnResetGo').onclick = async ()=>{
-    const p1 = document.getElementById('resetPw').value;
-    const p2 = document.getElementById('resetPw2').value;
-    const err = document.getElementById('resetError');
+  if(g('btnResetGo')) g('btnResetGo').onclick = async ()=>{
+    const p1 = g('resetPw').value, p2 = g('resetPw2').value, err = g('resetError');
     if(!p1 || p1!==p2){ err.textContent='Les mots de passe ne correspondent pas.'; return; }
     if(p1.length<4){ err.textContent='Mot de passe trop court (4 caractères minimum).'; return; }
     SETTINGS.auth.hash = await sha256Hex(p1);
@@ -1579,95 +1847,80 @@ function attachLockResetHandlers(){
     unlockApp();
   };
 }
-
 function unlockApp(){
   document.getElementById('lockScreen').style.display = 'none';
-  document.getElementById('app').style.display = 'block';
-  document.getElementById('fabAdd').style.display = 'flex';
-  renderTabs();
-  renderView();
+  document.getElementById('app').style.display = 'flex';
+  renderTabbar();
+  setTrack(0, false);
+  renderAll();
   checkReminders();
   if(!window._reminderInterval) window._reminderInterval = setInterval(checkReminders, 30*60*1000);
 }
-
 async function changePassword(){
-  const cur = document.getElementById('pwCurrent').value;
-  const n1 = document.getElementById('pwNew').value;
-  const n2 = document.getElementById('pwNew2').value;
-  const status = document.getElementById('pwStatus');
-  const auth = SETTINGS.auth || {};
-  const curHash = await sha256Hex(cur);
-  if(curHash!==auth.hash){ status.textContent='Mot de passe actuel incorrect.'; return; }
+  const g = id => document.getElementById(id);
+  const status = g('pwStatus'), auth = SETTINGS.auth || {};
+  if(await sha256Hex(g('pwCurrent').value)!==auth.hash){ status.textContent='Mot de passe actuel incorrect.'; return; }
+  const n1 = g('pwNew').value, n2 = g('pwNew2').value;
   if(!n1 || n1!==n2){ status.textContent='Les nouveaux mots de passe ne correspondent pas.'; return; }
+  if(n1.length<4){ status.textContent='Mot de passe trop court (4 caractères minimum).'; return; }
   SETTINGS.auth.hash = await sha256Hex(n1);
   await saveSettings();
   status.textContent = 'Mot de passe mis à jour.';
-  document.getElementById('pwCurrent').value='';
-  document.getElementById('pwNew').value='';
-  document.getElementById('pwNew2').value='';
+  g('pwCurrent').value=''; g('pwNew').value=''; g('pwNew2').value='';
 }
-
 async function saveSecretQuestion(){
-  const q = document.getElementById('secQuestion').value.trim();
-  const a = document.getElementById('secAnswer').value.trim();
-  const status = document.getElementById('secStatus');
+  const g = id => document.getElementById(id);
+  const q = g('secQuestion').value.trim(), a = g('secAnswer').value.trim(), status = g('secStatus');
   if(!q){ status.textContent='La question ne peut pas être vide.'; return; }
   SETTINGS.auth.secretQuestion = q;
   if(a) SETTINGS.auth.secretAnswerHash = await sha256Hex(a.toLowerCase());
   await saveSettings();
   status.textContent = 'Question secrète enregistrée.';
-  document.getElementById('secAnswer').value='';
+  g('secAnswer').value='';
 }
 
-async function toggleNotifications(e){
-  const enabled = e.target.checked;
+/* ---------- rappels ---------- */
+async function toggleNotifications(btn){
+  const enabled = !btn.classList.contains('on');
   const status = document.getElementById('notifStatus');
   if(enabled && 'Notification' in window){
     const perm = await Notification.requestPermission();
     if(perm!=='granted'){
-      status.textContent = "Autorisation refusée par le navigateur — les rappels resteront désactivés.";
-      e.target.checked = false;
+      if(status) status.textContent = "Autorisation refusée par le navigateur — les rappels restent désactivés.";
       return;
     }
   }
   SETTINGS.notifications = {...(SETTINGS.notifications||{}), enabled};
   await saveSettings();
-  status.textContent = enabled ? 'Rappels activés (tant que l\'appli reste ouverte).' : 'Rappels désactivés.';
+  renderAll();
+  const s2 = document.getElementById('notifStatus');
+  if(s2) s2.textContent = enabled ? "Rappels activés, tant que l'appli reste ouverte." : 'Rappels désactivés.';
 }
-
 function checkReminders(){
   const notif = SETTINGS.notifications || {};
   if(!notif.enabled || !('Notification' in window) || Notification.permission!=='granted') return;
-  const already = localStorage.getItem(STORAGE_PREFIX+'reminder-shown-'+todayISO());
-  if(already) return;
+  if(localStorage.getItem(STORAGE_PREFIX+'reminder-shown-'+todayISO())) return;
   const todays = PLAN.filter(p=>p.date===todayISO() && !p.linkedSessionId);
   if(!todays.length) return;
-  const list = todays.map(p=>SPORTS[p.sport].label).join(', ');
-  new Notification('Séance au programme aujourd\'hui', {body:list});
+  new Notification('Séance au programme aujourd\'hui', {body: todays.map(p=>sportLabel(p.sport)).join(', ')});
   localStorage.setItem(STORAGE_PREFIX+'reminder-shown-'+todayISO(), '1');
 }
 
-async function saveGoals(){
-  const status = document.getElementById('goalsStatus');
-  const goals = {};
-  Object.keys(SPORTS).forEach(k=>{
-    const v = Number(document.getElementById('goal-'+k).value)||0;
-    if(v>0) goals[k] = {sessions:v};
-  });
-  SETTINGS.goals = goals;
-  await saveSettings();
-  status.textContent = 'Objectifs enregistrés.';
-  if(currentTab==='dashboard') renderView();
-}
-
-/* ============ INIT ============ */
+/* ============================================================
+   INIT
+   ============================================================ */
 async function init(){
   SESSIONS = await loadKey('sessions', []);
   PLAN = await loadKey('plan', []);
   SETTINGS = await loadKey('settings', {});
   renderLock();
-  document.getElementById('fabAdd').onclick = openQuickAdd;
-  document.getElementById('modalBackdrop').onclick = (e)=>{ if(e.target.id==='modalBackdrop') closeModal(); };
+  document.getElementById('fabAdd').onclick = ()=>{
+    draft = newDraft(tabIndex===1 ? (calSelected||todayISO()) : todayISO());
+    openSessionSheet();
+  };
+  document.getElementById('sheetBackdrop').addEventListener('click', e=>{
+    if(e.target.id==='sheetBackdrop') closeSheet();
+  });
   await handleStravaCallback();
 }
 init();
